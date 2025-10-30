@@ -26,8 +26,8 @@
   },
   {
     "name": "Fried Rice",
-    "ingredients": ["rice", "egg", "soy sauce"],
-    "instructions": "Fry rice with soy sauce and scrambled egg."
+    "ingredients": ["rice", "eggs", "soy sauce"],
+    "instructions": "Fry rice with soy sauce and scrambled eggs."
   },
   {
     "name": "Avocado Toast",

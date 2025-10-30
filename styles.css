@@ -11,10 +11,28 @@ body {
   margin-bottom: 2rem;
 }
 
-input {
-  width: 60%;
+.ingredients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin: 1rem auto;
+  max-width: 800px;
+}
+
+.ingredient-box {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 6px;
   padding: 0.5rem;
-  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.ingredient-box.selected {
+  background: #0078d4;
+  color: white;
+  border-color: #0078d4;
 }
 
 button {
