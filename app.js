@@ -83,8 +83,7 @@ function findRecipes(userIngredients, recipes, selectedAllergens) {
         return false;
       })) return false;
     }
-
-    return recipeIngredients.some(i => userIngredients.includes(i));
+    return recipeIngredients.every(i => userIngredients.includes(i));
   });
 }
 

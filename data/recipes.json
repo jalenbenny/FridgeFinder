@@ -35,11 +35,6 @@
     "instructions": "Mash avocado, spread on toasted bread, sprinkle salt."
   },
   {
-    "name": "Fruit Smoothie",
-    "ingredients": ["milk", "banana", "strawberry"],
-    "instructions": "Blend all ingredients until smooth."
-  },
-  {
     "name": "Scrambled Eggs",
     "ingredients": ["eggs", "milk", "butter"],
     "instructions": "Whisk eggs with milk, cook with butter, stir until soft."
@@ -60,7 +55,7 @@
     "instructions": "Chop romaine lettuce and place in a bowl. Cut bread into cubes and toast for croutons. Toss lettuce with croutons, grated cheese, and Caesar dressing."
   },
   {
-    "name": "Banana Smoothie",
+    "name": "Strawberry Banana Smoothie",
     "ingredients": ["banana", "milk", "strawberry"],
     "instructions": "Peel banana and add to blender with milk and strawberries. Blend until smooth and creamy. Add ice if desired."
   },
