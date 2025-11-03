@@ -2,17 +2,17 @@
 // Helper Functions
 // -----------------
 async function loadRecipes() {
-  const res = await fetch("data/recipes.json");
-  return res.json();
-}
-
-async function initializeApp() {
-  allRecipes = await loadRecipes();
-  console.log("Loaded recipes:", allRecipes); // ADD THIS LINE
-  const allIngredients = getAllIngredients(allRecipes);
-  console.log("All ingredients:", allIngredients); // ADD THIS LINE
-  createIngredientBoxes(allIngredients);
-  renderFavorites();
+  try {
+    const res = await fetch("data/recipes.json");
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Error loading recipes:", error);
+    alert("Failed to load recipes. Please check that data/recipes.json exists.");
+    return [];
+  }
 }
 
 function getAllIngredients(recipes) {
@@ -26,6 +26,12 @@ function getAllIngredients(recipes) {
 function createIngredientBoxes(ingredients) {
   const container = document.getElementById("ingredients-container");
   container.innerHTML = "";
+  
+  if (ingredients.length === 0) {
+    container.innerHTML = '<p style="color: #B8732E;">No ingredients available. Please check your recipes.json file.</p>';
+    return;
+  }
+  
   ingredients.forEach(ingredient => {
     const box = document.createElement("div");
     box.className = "ingredient-box";
@@ -52,7 +58,8 @@ function getIngredientEmoji(ingredient) {
     "nuts": "🌰", "eggs": "🥚", "butter": "🧈", "avocado": "🥑",
     "tomato": "🍅", "banana": "🍌", "strawberry": "🍓",
     "lettuce": "🥬", "rice": "🍚", "peanut butter": "🥜",
-    "jelly": "🍇", "naan": "🍞", "soy sauce": "🧂"
+    "jelly": "🍇", "naan": "🍞", "soy sauce": "🧂", "olive oil": "🫒",
+    "salt": "🧂", "tomato sauce": "🍅"
   };
   for (const key in mapping) if (ingredient.includes(key)) return mapping[key];
   return "";
@@ -179,10 +186,17 @@ function renderFavorites() {
 // Initialize & Search
 // -----------------
 async function initializeApp() {
+  console.log("Initializing app...");
   allRecipes = await loadRecipes();
+  console.log("Loaded recipes:", allRecipes);
+  
   const allIngredients = getAllIngredients(allRecipes);
+  console.log("All ingredients:", allIngredients);
+  
   createIngredientBoxes(allIngredients);
   renderFavorites();
+  
+  console.log("App initialized successfully!");
 }
 
 async function performSearch() {
@@ -195,6 +209,7 @@ async function performSearch() {
   }
 
   currentResults = findRecipes(userIngredients, allRecipes, selectedAllergens);
+  console.log("Search results:", currentResults);
   renderRecipes(currentResults);
 }
 
@@ -203,4 +218,3 @@ async function performSearch() {
 // -----------------
 document.getElementById("search-btn").addEventListener("click", performSearch);
 window.addEventListener("load", initializeApp);
-
