@@ -1,9 +1,12 @@
+/* ------------------- */
+/* Body & Typography   */
+/* ------------------- */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #fff8f0;
+  background-color: #fff3e6; /* warm background */
   color: #333;
 }
 
@@ -67,7 +70,7 @@ h2 {
 }
 
 /* ------------------- */
-/* Button Style        */
+/* Buttons             */
 /* ------------------- */
 #search-btn {
   padding: 12px 25px;
@@ -105,7 +108,7 @@ h2 {
 }
 
 /* ------------------- */
-/* Results / Recipes   */
+/* Recipe Cards        */
 /* ------------------- */
 #results, #favorites {
   margin-top: 15px;
@@ -114,7 +117,7 @@ h2 {
 }
 
 .recipe-card {
-  background-color: #fff3e6;
+  background-color: #fff8f0;
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
