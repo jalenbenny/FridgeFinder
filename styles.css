@@ -1,6 +1,277 @@
-/* Existing styles from your previous CSS here ... */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-/* Comment Section */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #FFD89B 0%, #FFA347 50%, #FF8C42 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #4A2C2A;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #FFF8F0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(74, 44, 42, 0.2);
+}
+
+h1 {
+  text-align: center;
+  color: #D2691E;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  text-shadow: 2px 2px 4px rgba(255, 140, 66, 0.3);
+}
+
+h2 {
+  color: #B8732E;
+  margin: 30px 0 15px;
+  font-size: 1.5em;
+}
+
+/* -----------------
+   Account / Login / Signup
+----------------- */
+.login-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #FFF5E6;
+  border-radius: 15px;
+  border: 2px solid #FFD89B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.login-section input[type="text"],
+.login-section input[type="password"] {
+  padding: 10px 15px;
+  font-size: 1.1em;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  outline: none;
+  width: 250px;
+  transition: all 0.2s;
+}
+
+.login-section input:focus {
+  border-color: #FF8C42;
+  box-shadow: 0 0 8px rgba(255, 140, 66, 0.3);
+}
+
+.login-section button {
+  padding: 10px 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  transition: all 0.2s;
+}
+
+.login-section button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 140, 66, 0.4);
+}
+
+.login-section button:active {
+  transform: scale(0.98);
+}
+
+.link {
+  color: #FF8C42;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#signOutDiv p {
+  font-size: 1.2em;
+  font-weight: 500;
+  color: #6B4423;
+}
+
+/* -----------------
+   Allergy Filters
+----------------- */
+.allergy-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #FFF5E6;
+  border-radius: 10px;
+  border: 2px solid #FFD89B;
+}
+
+.allergy-filters {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.allergy-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: #6B4423;
+}
+
+.allergy-filters input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #FF8C42;
+}
+
+/* -----------------
+   Ingredient Boxes
+----------------- */
+#ingredients-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ingredient-box {
+  padding: 15px;
+  background: #FFF8EB;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+  color: #6B4423;
+  font-weight: 500;
+}
+
+.ingredient-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  background: #FFF0D6;
+}
+
+.ingredient-box.selected {
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  border-color: #FF8C42;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+}
+
+/* -----------------
+   Search Button
+----------------- */
+#search-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+}
+
+#search-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+}
+
+#search-btn:active {
+  transform: scale(0.98);
+}
+
+/* -----------------
+   Recipe Cards
+----------------- */
+.recipe-card {
+  background: white;
+  border: 2px solid #FFE4C4;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+  transition: transform 0.2s;
+}
+
+.recipe-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255, 140, 66, 0.25);
+}
+
+.recipe-card h3 {
+  color: #D2691E;
+  margin-bottom: 15px;
+  font-size: 1.5em;
+}
+
+.recipe-card p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #6B4423;
+}
+
+.recipe-card strong {
+  color: #B8732E;
+}
+
+.fav-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
+  color: #6B4423;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.fav-btn:hover {
+  background: linear-gradient(135deg, #FFED4E 0%, #FFB900 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+/* -----------------
+   Sections & No Results
+----------------- */
+.section {
+  margin-bottom: 40px;
+}
+
+.no-results {
+  text-align: center;
+  color: #B8732E;
+  font-size: 1.2em;
+  padding: 40px;
+  background: #FFF8EB;
+  border-radius: 10px;
+  border: 2px dashed #FFD89B;
+}
+
+/* -----------------
+   Comment Section
+----------------- */
 .comment-section {
   margin-top: 15px;
   display: flex;
@@ -10,41 +281,27 @@
 
 .comment-input {
   padding: 8px;
-  font-size: 1em;
   border-radius: 8px;
   border: 2px solid #FFD89B;
+  width: 100%;
   outline: none;
-}
-
-.comment-input:focus {
-  border-color: #FF8C42;
-  box-shadow: 0 0 6px rgba(255, 140, 66, 0.3);
 }
 
 .comment-btn {
   padding: 6px 12px;
-  font-size: 0.9em;
-  font-weight: bold;
-  color: white;
-  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  margin-top: 5px;
+  background: linear-gradient(135deg,#FFA347 0%,#FF8C42 100%);
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  width: fit-content;
+  color: white;
+  font-weight: bold;
 }
 
 .comment-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(255,140,66,0.4);
 }
 
 .comment-list {
-  margin-top: 5px;
-  border-top: 1px dashed #FFD89B;
-  padding-top: 5px;
-}
-
-.comment {
-  font-size: 0.9em;
-  color: #6B4423;
-}
+  margin-top: 8px;
+  background: #FFF8EB;
