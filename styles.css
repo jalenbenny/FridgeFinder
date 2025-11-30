@@ -1,664 +1,628 @@
-// -----------------
-// DOM Elements
-// -----------------
-const authDiv = document.getElementById('authDiv');
-const mainContent = document.getElementById('mainContent');
-const signInBtn = document.getElementById('signInBtn');
-const signUpBtn = document.getElementById('signUpBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-const displayUser = document.getElementById('displayUser');
-const authMessage = document.getElementById('authMessage');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-
-let allRecipes = [];
-let currentResults = [];
-let currentUser = null;
-let selectedRecipeForPlan = null;
-
-// -----------------
-// Load Recipes JSON
-// -----------------
-async function loadRecipes() {
-  try {
-    const res = await fetch('data/recipes.json');
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    allRecipes = await res.json();
-  } catch (err) {
-    console.error('Failed to load recipes.json:', err);
-    alert('Error loading recipes.json. Make sure the file exists in data/recipes.json');
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-// -----------------
-// LocalStorage Helpers
-// -----------------
-function getUsers() {
-  return JSON.parse(localStorage.getItem('users') || '{}');
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #FFD89B 0%, #FFA347 50%, #FF8C42 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: #4A2C2A;
 }
 
-function saveUser(username, password) {
-  const users = getUsers();
-  users[username] = password;
-  localStorage.setItem('users', JSON.stringify(users));
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #FFF8F0;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(74, 44, 42, 0.2);
 }
 
-function getFavorites(username) {
-  const key = `favorites_${username}`;
-  return JSON.parse(localStorage.getItem(key) || '[]');
+h1 {
+  text-align: center;
+  color: #D2691E;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  text-shadow: 2px 2px 4px rgba(255, 140, 66, 0.3);
 }
 
-function saveFavorites(username, favorites) {
-  const key = `favorites_${username}`;
-  localStorage.setItem(key, JSON.stringify(favorites));
+h2 {
+  color: #B8732E;
+  margin: 30px 0 15px;
+  font-size: 1.5em;
 }
 
-function getRecipeComments(recipeName) {
-  const key = `comments_${recipeName}`;
-  return JSON.parse(localStorage.getItem(key) || '[]');
+/* Authentication */
+.auth-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 30px;
+  border-radius: 20px;
+  background: #FFF5E6;
+  border: 2px solid #FFD89B;
+  margin-bottom: 30px;
 }
 
-function saveRecipeComments(recipeName, comments) {
-  const key = `comments_${recipeName}`;
-  localStorage.setItem(key, JSON.stringify(comments));
+.auth-section input[type="text"],
+.auth-section input[type="password"] {
+  width: 250px;
+  padding: 10px 15px;
+  font-size: 1.1em;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.2s;
 }
 
-function getGeneralComments() {
-  return JSON.parse(localStorage.getItem('generalComments') || '[]');
+.auth-section input:focus {
+  border-color: #FF8C42;
+  box-shadow: 0 0 8px rgba(255, 140, 66, 0.3);
 }
 
-function saveGeneralComments(comments) {
-  localStorage.setItem('generalComments', JSON.stringify(comments));
+.auth-buttons {
+  display: flex;
+  gap: 15px;
 }
 
-function getMealPlan(username) {
-  const key = `mealPlan_${username}`;
-  const defaultPlan = {
-    Saturday: { breakfast: null, lunch: null, dinner: null },
-    Sunday: { breakfast: null, lunch: null, dinner: null },
-    Monday: { breakfast: null, lunch: null, dinner: null },
-    Tuesday: { breakfast: null, lunch: null, dinner: null },
-    Wednesday: { breakfast: null, lunch: null, dinner: null },
-    Thursday: { breakfast: null, lunch: null, dinner: null },
-    Friday: { breakfast: null, lunch: null, dinner: null }
-  };
-  return JSON.parse(localStorage.getItem(key) || JSON.stringify(defaultPlan));
+.auth-buttons button {
+  padding: 10px 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  transition: all 0.2s;
 }
 
-function saveMealPlan(username, mealPlan) {
-  const key = `mealPlan_${username}`;
-  localStorage.setItem(key, JSON.stringify(mealPlan));
+.auth-buttons button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 140, 66, 0.4);
 }
 
-// -----------------
-// Emoji mapping
-// -----------------
-function getIngredientEmoji(ingredient) {
-  const mapping = {
-    "bread": "🥖", "pasta": "🍝", "cheese": "🧀", "milk": "🥛",
-    "nuts": "🌰", "eggs": "🥚", "butter": "🧈", "avocado": "🥑",
-    "tomato": "🍅", "banana": "🍌", "strawberry": "🍓",
-    "lettuce": "🥬", "rice": "🍚", "peanut butter": "🥜",
-    "jelly": "🍇", "naan": "🍞", "soy sauce": "🧂", "olive oil": "🫒",
-    "salt": "🧂", "tomato sauce": "🍅"
-  };
-  for (const key in mapping) {
-    if (ingredient.toLowerCase().includes(key)) return mapping[key];
-  }
-  return "";
+.auth-message {
+  color: red;
+  font-weight: 500;
 }
 
-// -----------------
-// Authentication Logic
-// -----------------
-function showMainContent(username) {
-  authDiv.style.display = 'none';
-  mainContent.style.display = 'block';
-  displayUser.textContent = username;
-  currentUser = username;
-  localStorage.setItem('currentUser', username);
-  
-  renderFavorites();
-  renderGeneralComments();
-  renderWeeklyPlan();
+/* Sign Out */
+.signout-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #FFF5E6;
+  border-radius: 15px;
+  border: 2px solid #FFD89B;
 }
 
-function showAuth() {
-  authDiv.style.display = 'flex';
-  mainContent.style.display = 'none';
-  usernameInput.value = '';
-  passwordInput.value = '';
-  currentUser = null;
-  localStorage.removeItem('currentUser');
+.signout-section button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  transition: all 0.2s;
 }
 
-signInBtn.addEventListener('click', () => {
-  const user = usernameInput.value.trim();
-  const pass = passwordInput.value;
-  if (!user || !pass) {
-    authMessage.textContent = 'Enter username and password';
-    return;
-  }
-  
-  const users = getUsers();
-  if (users[user] && users[user] === pass) {
-    showMainContent(user);
-    authMessage.textContent = '';
-  } else {
-    authMessage.textContent = 'Invalid username or password';
-  }
-});
-
-signUpBtn.addEventListener('click', () => {
-  const user = usernameInput.value.trim();
-  const pass = passwordInput.value;
-  if (!user || !pass) {
-    authMessage.textContent = 'Enter username and password';
-    return;
-  }
-  
-  const users = getUsers();
-  if (users[user]) {
-    authMessage.textContent = 'Username already exists';
-    return;
-  }
-  
-  saveUser(user, pass);
-  showMainContent(user);
-  authMessage.textContent = '';
-});
-
-signOutBtn.addEventListener('click', () => {
-  showAuth();
-  renderFavorites();
-});
-
-// -----------------
-// Ingredient Boxes
-// -----------------
-function getAllIngredients() {
-  const ingredients = new Set();
-  allRecipes.forEach(r => r.ingredients.forEach(i => ingredients.add(i.toLowerCase())));
-  return Array.from(ingredients).sort();
+.signout-section button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
 }
 
-function createIngredientBoxes() {
-  const container = document.getElementById('ingredients-container');
-  container.innerHTML = '';
-  const ingredients = getAllIngredients();
-  ingredients.forEach(ing => {
-    const box = document.createElement('div');
-    box.className = 'ingredient-box';
-    const emoji = getIngredientEmoji(ing);
-    box.textContent = `${emoji} ${ing}`;
-    box.addEventListener('click', () => box.classList.toggle('selected'));
-    container.appendChild(box);
-  });
+/* Ingredients */
+#ingredients-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-function getSelectedIngredients() {
-  return Array.from(document.querySelectorAll('.ingredient-box.selected'))
-    .map(b => b.textContent.replace(/[^\w\s]/g, '').trim().toLowerCase());
+.ingredient-box {
+  padding: 15px;
+  background: #FFF8EB;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+  color: #6B4423;
+  font-weight: 500;
 }
 
-function getSelectedAllergens() {
-  return Array.from(document.querySelectorAll('.allergy-filter:checked'))
-    .map(b => b.value.toLowerCase());
+.ingredient-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  background: #FFF0D6;
 }
 
-// -----------------
-// Find Recipes
-// -----------------
-function findRecipes(selectedIngredients, selectedAllergens) {
-  return allRecipes.filter(recipe => {
-    const ing = recipe.ingredients.map(i => i.toLowerCase());
-
-    for (const allergen of selectedAllergens) {
-      if (allergensMatch(ing, allergen)) return false;
-    }
-
-    return ing.some(i => selectedIngredients.includes(i));
-  });
+.ingredient-box.selected {
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  border-color: #FF8C42;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
 }
 
-function allergensMatch(recipeIngredients, allergen) {
-  if (allergen === 'gluten') return recipeIngredients.some(i => 
-    i.includes('bread') || i.includes('pasta') || i.includes('naan'));
-  if (allergen === 'nuts') return recipeIngredients.some(i => 
-    i.includes('nuts') || i.includes('peanut') || i.includes('almond'));
-  if (allergen === 'dairy') return recipeIngredients.some(i => 
-    i.includes('cheese') || i.includes('milk') || i.includes('butter'));
-  return false;
+/* Allergy Filters */
+.allergy-filters {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-// -----------------
-// Render Recipes
-// -----------------
-function renderRecipes(recipes) {
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = '';
-
-  if (!recipes.length) {
-    resultsDiv.innerHTML = '<div class="no-results">No matches found!</div>';
-    return;
-  }
-
-  recipes.forEach(recipe => {
-    const card = document.createElement('div');
-    card.className = 'recipe-card';
-
-    const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
-    const favorites = getFavorites(currentUser);
-    const isFavorited = favorites.some(f => f.name === recipe.name);
-
-    card.innerHTML = `
-      <h3>${emojis} ${recipe.name}</h3>
-      <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-      <p><strong>Instructions:</strong> ${recipe.instructions}</p>
-      <p><strong>Prep:</strong> ${recipe.prep_time_min} min, <strong>Cook:</strong> ${recipe.cook_time_min} min at ${recipe.heat}</p>
-      <p><strong>Nutrition:</strong> ${recipe.nutrition.calories} kcal, ${recipe.nutrition.protein_g}g protein, ${recipe.nutrition.fat_g}g fat, ${recipe.nutrition.carbs_g}g carbs</p>
-    `;
-
-    // Buttons container
-    const buttonsDiv = document.createElement('div');
-    
-    const favButton = document.createElement('button');
-    favButton.className = 'fav-btn';
-    favButton.textContent = isFavorited ? '★ Favorited' : '☆ Favorite';
-    favButton.addEventListener('click', () => toggleFavorite(recipe));
-    buttonsDiv.appendChild(favButton);
-
-    const commentButton = document.createElement('button');
-    commentButton.className = 'comment-btn';
-    commentButton.textContent = '💬 Comments';
-    commentButton.addEventListener('click', () => toggleRecipeComments(recipe, card));
-    buttonsDiv.appendChild(commentButton);
-
-    const addToPlanButton = document.createElement('button');
-    addToPlanButton.className = 'add-to-plan-btn';
-    addToPlanButton.textContent = '📅 Add to Plan';
-    addToPlanButton.addEventListener('click', () => openDaySelector(recipe));
-    buttonsDiv.appendChild(addToPlanButton);
-
-    card.appendChild(buttonsDiv);
-    resultsDiv.appendChild(card);
-  });
+.allergy-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1em;
+  color: #6B4423;
+  cursor: pointer;
 }
 
-// -----------------
-// Recipe Comments
-// -----------------
-function toggleRecipeComments(recipe, card) {
-  // Check if comments section already exists
-  let commentsSection = card.querySelector('.recipe-comments');
-  
-  if (commentsSection) {
-    commentsSection.remove();
-    return;
-  }
-
-  // Create comments section
-  commentsSection = document.createElement('div');
-  commentsSection.className = 'recipe-comments';
-
-  commentsSection.innerHTML = `
-    <h4>💬 Comments on this recipe</h4>
-    <div class="recipe-comment-input">
-      <input type="text" placeholder="Write a comment..." class="recipe-comment-text">
-      <button class="post-recipe-comment">Post</button>
-    </div>
-    <div class="recipe-comments-list"></div>
-  `;
-
-  card.appendChild(commentsSection);
-
-  // Add event listener for posting
-  const commentInput = commentsSection.querySelector('.recipe-comment-text');
-  const postBtn = commentsSection.querySelector('.post-recipe-comment');
-  
-  postBtn.addEventListener('click', () => {
-    const text = commentInput.value.trim();
-    if (!text) return;
-    
-    const comments = getRecipeComments(recipe.name);
-    comments.push({
-      user: currentUser,
-      text: text,
-      timestamp: new Date().toLocaleString()
-    });
-    saveRecipeComments(recipe.name, comments);
-    
-    commentInput.value = '';
-    renderRecipeComments(recipe.name, commentsSection);
-  });
-
-  renderRecipeComments(recipe.name, commentsSection);
+.allergy-filters input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 
-function renderRecipeComments(recipeName, commentsSection) {
-  const commentsList = commentsSection.querySelector('.recipe-comments-list');
-  commentsList.innerHTML = '';
-
-  const comments = getRecipeComments(recipeName);
-
-  if (!comments.length) {
-    commentsList.innerHTML = '<p style="color: #B8732E; font-style: italic;">No comments yet. Be the first!</p>';
-    return;
-  }
-
-  comments.slice().reverse().forEach(comment => {
-    const commentDiv = document.createElement('div');
-    commentDiv.className = 'recipe-comment';
-    commentDiv.innerHTML = `
-      <strong>${comment.user}</strong> - <em>${comment.timestamp}</em><br>
-      ${comment.text}
-    `;
-    commentsList.appendChild(commentDiv);
-  });
+/* Search Button */
+#search-btn {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
 }
 
-// -----------------
-// Favorites
-// -----------------
-function toggleFavorite(recipe) {
-  if (!currentUser) return;
-  
-  const favorites = getFavorites(currentUser);
-  const index = favorites.findIndex(f => f.name === recipe.name);
-  
-  if (index > -1) {
-    favorites.splice(index, 1);
-  } else {
-    favorites.push(recipe);
-  }
-  
-  saveFavorites(currentUser, favorites);
-  renderRecipes(currentResults);
-  renderFavorites();
+#search-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
 }
 
-function renderFavorites() {
-  const favoritesDiv = document.getElementById('favorites');
-  favoritesDiv.innerHTML = '';
-
-  if (!currentUser) {
-    favoritesDiv.innerHTML = '<div class="no-results">Sign in to save favorites!</div>';
-    return;
-  }
-
-  const favs = getFavorites(currentUser);
-
-  if (!favs.length) {
-    favoritesDiv.innerHTML = '<div class="no-results">No favorites yet!</div>';
-    return;
-  }
-
-  favs.forEach(recipe => {
-    const card = document.createElement('div');
-    card.className = 'recipe-card';
-
-    const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
-
-    card.innerHTML = `
-      <h3>${emojis} ${recipe.name}</h3>
-      <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-      <p><strong>Instructions:</strong> ${recipe.instructions}</p>
-    `;
-
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = '★ Remove';
-    removeBtn.className = 'fav-btn';
-    removeBtn.addEventListener('click', () => {
-      toggleFavorite(recipe);
-    });
-    card.appendChild(removeBtn);
-
-    favoritesDiv.appendChild(card);
-  });
+#search-btn:active {
+  transform: scale(0.98);
 }
 
-// -----------------
-// Weekly Meal Plan
-// -----------------
-function renderWeeklyPlan() {
-  const weeklyPlanDiv = document.getElementById('weeklyPlan');
-  weeklyPlanDiv.innerHTML = '';
-
-  const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const mealTypes = ['breakfast', 'lunch', 'dinner'];
-  const mealPlan = getMealPlan(currentUser);
-
-  days.forEach(day => {
-    const dayCard = document.createElement('div');
-    dayCard.className = 'day-card';
-    dayCard.innerHTML = `<h3>${day}</h3>`;
-
-    mealTypes.forEach(mealType => {
-      const mealSlot = document.createElement('div');
-      mealSlot.className = 'meal-slot';
-      
-      const meal = mealPlan[day][mealType];
-      
-      if (meal) {
-        mealSlot.classList.add('filled');
-        mealSlot.innerHTML = `
-          <div class="meal-slot-header">${mealType.charAt(0).toUpperCase() + mealType.slice(1)}</div>
-          <div class="meal-item">
-            ${getIngredientEmoji(meal.ingredients[0])} ${meal.name}
-            <span class="remove-meal" data-day="${day}" data-meal="${mealType}">✕</span>
-          </div>
-        `;
-      } else {
-        mealSlot.innerHTML = `
-          <div class="meal-slot-header">${mealType.charAt(0).toUpperCase() + mealType.slice(1)}</div>
-          <div style="color: #B8732E; font-style: italic;">Not planned</div>
-        `;
-      }
-
-      dayCard.appendChild(mealSlot);
-    });
-
-    weeklyPlanDiv.appendChild(dayCard);
-  });
-
-  // Add event listeners for remove buttons
-  document.querySelectorAll('.remove-meal').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const day = e.target.dataset.day;
-      const meal = e.target.dataset.meal;
-      const mealPlan = getMealPlan(currentUser);
-      mealPlan[day][meal] = null;
-      saveMealPlan(currentUser, mealPlan);
-      renderWeeklyPlan();
-    });
-  });
+/* Sections */
+.section {
+  margin-top: 30px;
 }
 
-// Day selector modal
-function openDaySelector(recipe) {
-  selectedRecipeForPlan = recipe;
-  
-  const modal = document.createElement('div');
-  modal.className = 'day-selector-modal';
-  modal.style.display = 'flex';
-  
-  modal.innerHTML = `
-    <div class="day-selector-content">
-      <h3>Add "${recipe.name}" to your meal plan</h3>
-      <p>Select a day and meal type:</p>
-      
-      <div class="day-buttons">
-        <button data-day="Saturday">Saturday</button>
-        <button data-day="Sunday">Sunday</button>
-        <button data-day="Monday">Monday</button>
-        <button data-day="Tuesday">Tuesday</button>
-        <button data-day="Wednesday">Wednesday</button>
-        <button data-day="Thursday">Thursday</button>
-        <button data-day="Friday">Friday</button>
-      </div>
-      
-      <div class="meal-type-selector">
-        <label for="mealType">Meal Type:</label>
-        <select id="mealType">
-          <option value="breakfast">Breakfast</option>
-          <option value="lunch">Lunch</option>
-          <option value="dinner">Dinner</option>
-        </select>
-      </div>
-      
-      <div class="modal-buttons">
-        <button class="cancel-btn">Cancel</button>
-        <button class="confirm-btn">Add to Plan</button>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  
-  let selectedDay = null;
-  
-  modal.querySelectorAll('[data-day]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      modal.querySelectorAll('[data-day]').forEach(b => b.style.background = '#FFF8EB');
-      e.target.style.background = 'linear-gradient(135deg, #FFA347 0%, #FF8C42 100%)';
-      e.target.style.color = 'white';
-      selectedDay = e.target.dataset.day;
-    });
-  });
-  
-  modal.querySelector('.cancel-btn').addEventListener('click', () => {
-    modal.remove();
-  });
-  
-  modal.querySelector('.confirm-btn').addEventListener('click', () => {
-    if (!selectedDay) {
-      alert('Please select a day!');
-      return;
-    }
-    
-    const mealType = document.getElementById('mealType').value;
-    const mealPlan = getMealPlan(currentUser);
-    mealPlan[selectedDay][mealType] = recipe;
-    saveMealPlan(currentUser, mealPlan);
-    renderWeeklyPlan();
-    modal.remove();
-  });
-  
-  // Close on background click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
+/* Recipe Cards */
+.recipe-card {
+  background: white;
+  border: 2px solid #FFE4C4;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+  transition: transform 0.2s;
 }
 
-// Suggest meals button
-document.getElementById('suggestMealsBtn').addEventListener('click', () => {
-  if (allRecipes.length === 0) {
-    alert('No recipes loaded yet!');
-    return;
-  }
-  
-  const days = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-  const mealTypes = ['breakfast', 'lunch', 'dinner'];
-  const mealPlan = getMealPlan(currentUser);
-  
-  // Clear current plan
-  days.forEach(day => {
-    mealTypes.forEach(mealType => {
-      mealPlan[day][mealType] = null;
-    });
-  });
-  
-  // Fill with random suggestions
-  days.forEach(day => {
-    mealTypes.forEach(mealType => {
-      const randomRecipe = allRecipes[Math.floor(Math.random() * allRecipes.length)];
-      mealPlan[day][mealType] = randomRecipe;
-    });
-  });
-  
-  saveMealPlan(currentUser, mealPlan);
-  renderWeeklyPlan();
-  alert('Meal plan generated! Feel free to customize it.');
-});
-
-// -----------------
-// General Comments
-// -----------------
-document.getElementById('postCommentBtn').addEventListener('click', () => {
-  const text = document.getElementById('commentInput').value.trim();
-  if (!text) return;
-  if (!currentUser) {
-    alert('Please sign in to post comments!');
-    return;
-  }
-  
-  const comments = getGeneralComments();
-  comments.push({
-    user: currentUser,
-    text: text,
-    timestamp: new Date().toLocaleString()
-  });
-  saveGeneralComments(comments);
-  
-  document.getElementById('commentInput').value = '';
-  renderGeneralComments();
-});
-
-function renderGeneralComments() {
-  const commentList = document.getElementById('commentList');
-  commentList.innerHTML = '';
-  
-  const comments = getGeneralComments();
-  
-  if (!comments.length) {
-    commentList.innerHTML = '<div class="no-results">No comments yet!</div>';
-    return;
-  }
-
-  comments.slice().reverse().forEach(comment => {
-    const commentDiv = document.createElement('div');
-    commentDiv.className = 'comment';
-    commentDiv.innerHTML = `
-      <strong>${comment.user}</strong> - <em>${comment.timestamp}</em><br>
-      ${comment.text}
-    `;
-    commentList.appendChild(commentDiv);
-  });
+.recipe-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(255, 140, 66, 0.25);
 }
 
-// -----------------
-// Search Button
-// -----------------
-document.getElementById('search-btn').addEventListener('click', () => {
-  const selectedIngredients = getSelectedIngredients();
-  const selectedAllergens = getSelectedAllergens();
+.recipe-card h3 {
+  color: #D2691E;
+  margin-bottom: 15px;
+  font-size: 1.5em;
+}
 
-  if (!selectedIngredients.length) {
-    alert('Select at least one ingredient!');
-    return;
-  }
+.recipe-card p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  color: #6B4423;
+}
 
-  currentResults = findRecipes(selectedIngredients, selectedAllergens);
-  renderRecipes(currentResults);
-});
+.recipe-card strong {
+  color: #B8732E;
+}
 
-// -----------------
-// Initialize
-// -----------------
-window.addEventListener('load', async () => {
-  await loadRecipes();
-  createIngredientBoxes();
-  
-  // Check if user was previously logged in
-  const savedUser = localStorage.getItem('currentUser');
-  if (savedUser) {
-    const users = getUsers();
-    if (users[savedUser]) {
-      showMainContent(savedUser);
-    } else {
-      showAuth();
-    }
-  } else {
-    showAuth();
-  }
-});
+.fav-btn {
+  margin-top: 10px;
+  margin-right: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
+  color: #6B4423;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.fav-btn:hover {
+  background: linear-gradient(135deg, #FFED4E 0%, #FFB900 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.comment-btn {
+  margin-top: 10px;
+  margin-right: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(70, 130, 180, 0.3);
+}
+
+.comment-btn:hover {
+  background: linear-gradient(135deg, #ADD8E6 0%, #5B9BD5 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(70, 130, 180, 0.4);
+}
+
+.add-to-plan-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.2s;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(50, 205, 50, 0.3);
+}
+
+.add-to-plan-btn:hover {
+  background: linear-gradient(135deg, #98FB98 0%, #3CB371 100%);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(50, 205, 50, 0.4);
+}
+
+.no-results {
+  text-align: center;
+  padding: 30px;
+  color: #B8732E;
+  font-size: 1.1em;
+}
+
+/* Recipe Comments Section */
+.recipe-comments {
+  margin-top: 15px;
+  padding: 15px;
+  background: #F5F5DC;
+  border-radius: 10px;
+  border: 1px solid #FFD89B;
+}
+
+.recipe-comments h4 {
+  color: #B8732E;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.recipe-comment-input {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.recipe-comment-input input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid #FFD89B;
+  outline: none;
+  font-size: 0.95em;
+}
+
+.recipe-comment-input button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: all 0.2s;
+}
+
+.recipe-comment-input button:hover {
+  transform: scale(1.05);
+}
+
+.recipe-comment {
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  color: #6B4423;
+}
+
+.recipe-comment strong {
+  color: #D2691E;
+}
+
+/* Community Comments */
+#commentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#commentSection input {
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 2px solid #FFD89B;
+  outline: none;
+  width: 100%;
+  font-size: 1em;
+}
+
+#commentSection button {
+  width: 150px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#commentSection button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+}
+
+#commentList {
+  margin-top: 20px;
+}
+
+.comment {
+  padding: 12px;
+  border-bottom: 1px solid #FFD89B;
+  font-size: 0.95em;
+  color: #6B4423;
+  background: #FFF8EB;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.comment strong {
+  color: #D2691E;
+}
+
+/* Weekly Meal Plan */
+.meal-plan-intro {
+  background: #FFF5E6;
+  padding: 20px;
+  border-radius: 15px;
+  border: 2px solid #FFD89B;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.meal-plan-intro p {
+  margin-bottom: 15px;
+  color: #6B4423;
+  font-size: 1.1em;
+}
+
+.suggest-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #9370DB 0%, #8A2BE2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+}
+
+.suggest-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+}
+
+.weekly-plan {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.day-card {
+  background: white;
+  border: 2px solid #FFE4C4;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+}
+
+.day-card h3 {
+  color: #D2691E;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+  border-bottom: 2px solid #FFD89B;
+  padding-bottom: 10px;
+}
+
+.meal-slot {
+  background: #FFF8EB;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 2px dashed #FFD89B;
+  min-height: 60px;
+}
+
+.meal-slot.filled {
+  border: 2px solid #90EE90;
+  background: #F0FFF0;
+}
+
+.meal-slot-header {
+  font-weight: bold;
+  color: #B8732E;
+  margin-bottom: 8px;
+}
+
+.meal-item {
+  color: #6B4423;
+  font-size: 0.95em;
+  padding: 5px;
+  background: white;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.remove-meal {
+  float: right;
+  color: red;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+
+.remove-meal:hover {
+  color: darkred;
+}
+
+/* Day selector modal */
+.day-selector-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.day-selector-content {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+}
+
+.day-selector-content h3 {
+  color: #D2691E;
+  margin-bottom: 20px;
+}
+
+.day-selector-content p {
+  color: #6B4423;
+  margin-bottom: 15px;
+}
+
+.day-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.day-buttons button {
+  padding: 12px;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  background: #FFF8EB;
+  color: #6B4423;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.day-buttons button:hover {
+  background: linear-gradient(135deg, #FFA347 0%, #FF8C42 100%);
+  color: white;
+  transform: scale(1.05);
+}
+
+.meal-type-selector {
+  margin-bottom: 20px;
+}
+
+.meal-type-selector label {
+  display: block;
+  margin-bottom: 10px;
+  color: #6B4423;
+  font-weight: bold;
+}
+
+.meal-type-selector select {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #FFD89B;
+  border-radius: 10px;
+  font-size: 1em;
+  color: #6B4423;
+  background: white;
+  cursor: pointer;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background: #DDD;
+  color: #666;
+}
+
+.cancel-btn:hover {
+  background: #CCC;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #90EE90 0%, #32CD32 100%);
+  color: white;
+}
+
+.confirm-btn:hover {
+  transform: scale(1.05);
+}
