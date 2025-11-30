@@ -1,4 +1,51 @@
 // -----------------
+// Sign In / Sign Out
+// -----------------
+const signInForm = document.getElementById('signInForm');
+const signOutDiv = document.getElementById('signOutDiv');
+const displayUser = document.getElementById('displayUser');
+const signInBtn = document.getElementById('signInBtn');
+const signOutBtn = document.getElementById('signOutBtn');
+
+// Check if user is already signed in
+const currentUser = localStorage.getItem('user');
+if (currentUser) {
+  showSignedIn(currentUser);
+}
+
+// Sign in logic
+signInBtn.addEventListener('click', () => {
+  const username = document.getElementById('username').value.trim();
+  if (username) {
+    localStorage.setItem('user', username);
+    showSignedIn(username);
+    renderFavorites(); // update favorites for this user
+  } else {
+    alert('Please enter a username');
+  }
+});
+
+// Sign out logic
+signOutBtn.addEventListener('click', () => {
+  localStorage.removeItem('user');
+  showSignedOut();
+  renderFavorites(); // clear favorites view
+});
+
+// Helper functions for sign in/out
+function showSignedIn(username) {
+  signInForm.style.display = 'none';
+  signOutDiv.style.display = 'block';
+  displayUser.textContent = username;
+}
+
+function showSignedOut() {
+  signInForm.style.display = 'block';
+  signOutDiv.style.display = 'none';
+  document.getElementById('username').value = '';
+}
+
+// -----------------
 // Helper Functions
 // -----------------
 async function loadRecipes() {
@@ -110,7 +157,7 @@ function renderRecipes(recipes) {
     const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(" ");
 
     const favButton = document.createElement("button");
-    favButton.textContent = localStorage.getItem(recipe.name) ? "★ Favorited" : "☆ Favorite";
+    favButton.textContent = localStorage.getItem(getUserKey(recipe.name)) ? "★ Favorited" : "☆ Favorite";
     favButton.className = "fav-btn";
     favButton.addEventListener("click", () => toggleFavorite(recipe));
 
@@ -125,10 +172,15 @@ function renderRecipes(recipes) {
 }
 
 // -----------------
-// Favorites
+// Per-User Favorites
 // -----------------
+function getUserKey(recipeName) {
+  const username = localStorage.getItem('user');
+  return username ? `${username}_${recipeName}` : recipeName;
+}
+
 function toggleFavorite(recipe) {
-  const key = recipe.name;
+  const key = getUserKey(recipe.name);
   if (localStorage.getItem(key)) {
     localStorage.removeItem(key);
   } else {
@@ -142,15 +194,14 @@ function renderFavorites() {
   const favoritesDiv = document.getElementById("favorites");
   favoritesDiv.innerHTML = "";
 
+  const username = localStorage.getItem('user');
+  if (!username) {
+    favoritesDiv.innerHTML = '<div class="no-results">Sign in to save favorites!</div>';
+    return;
+  }
+
   const favoriteRecipes = Object.keys(localStorage)
-    .filter(key => {
-      try {
-        const item = JSON.parse(localStorage.getItem(key));
-        return item && item.name && item.ingredients;
-      } catch {
-        return false;
-      }
-    })
+    .filter(key => key.startsWith(username + "_"))
     .map(key => JSON.parse(localStorage.getItem(key)));
 
   if (favoriteRecipes.length === 0) {
@@ -167,7 +218,7 @@ function renderFavorites() {
     unfavButton.textContent = "★ Remove";
     unfavButton.className = "fav-btn";
     unfavButton.addEventListener("click", () => {
-      localStorage.removeItem(recipe.name);
+      localStorage.removeItem(getUserKey(recipe.name));
       renderFavorites();
       if (currentResults.length > 0) renderRecipes(currentResults);
     });
