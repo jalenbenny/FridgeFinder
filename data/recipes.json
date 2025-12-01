@@ -2,57 +2,101 @@
   {
     "name": "Grilled Cheese Sandwich",
     "ingredients": ["bread", "cheese", "butter"],
-    "instructions": "Butter bread, place cheese between slices, grill until golden."
+    "instructions": "Butter one side of each bread slice. Place cheese between the unbuttered sides. Heat a pan over medium heat and grill the sandwich until golden brown on both sides and the cheese is melted.",
+    "prep_time_min": 5,
+    "cook_time_min": 5,
+    "heat": "medium",
+    "nutrition": {"calories": 350, "protein_g": 12, "fat_g": 20, "carbs_g": 30}
   },
   {
     "name": "Tomato Pasta",
     "ingredients": ["pasta", "tomato sauce", "olive oil"],
-    "instructions": "Boil pasta, toss with tomato sauce and olive oil."
+    "instructions": "Boil pasta in salted water until al dente (about 8-10 minutes). Drain and return to the pot. Add tomato sauce and a drizzle of olive oil. Heat through for 2-3 minutes over medium heat.",
+    "prep_time_min": 5,
+    "cook_time_min": 12,
+    "heat": "medium",
+    "nutrition": {"calories": 400, "protein_g": 12, "fat_g": 10, "carbs_g": 65}
   },
   {
     "name": "PB&J Sandwich",
     "ingredients": ["bread", "peanut butter", "jelly"],
-    "instructions": "Spread peanut butter and jelly on bread slices, combine."
+    "instructions": "Spread peanut butter on one slice of bread and jelly on the other. Press slices together to form a sandwich. Cut diagonally if desired.",
+    "prep_time_min": 5,
+    "cook_time_min": 0,
+    "heat": "none",
+    "nutrition": {"calories": 320, "protein_g": 10, "fat_g": 14, "carbs_g": 38}
   },
   {
     "name": "Omelette",
     "ingredients": ["eggs", "milk", "cheese"],
-    "instructions": "Beat eggs and milk, cook in pan, add cheese before folding."
+    "instructions": "Beat eggs with milk until smooth. Heat a nonstick pan over medium heat, pour in eggs, and cook until edges start to set. Sprinkle cheese, fold the omelette, and cook 1-2 more minutes until fully set.",
+    "prep_time_min": 5,
+    "cook_time_min": 7,
+    "heat": "medium",
+    "nutrition": {"calories": 250, "protein_g": 14, "fat_g": 18, "carbs_g": 2}
   },
   {
     "name": "Naan Pizza",
     "ingredients": ["naan", "cheese", "tomato sauce"],
-    "instructions": "Spread sauce on naan, add cheese, bake at 425°F for 10 min."
+    "instructions": "Preheat oven to 425°F (220°C). Spread tomato sauce evenly on naan, sprinkle cheese on top, and bake for 10 minutes or until cheese melts and edges are crisp.",
+    "prep_time_min": 5,
+    "cook_time_min": 10,
+    "heat": "425°F / 220°C",
+    "nutrition": {"calories": 400, "protein_g": 15, "fat_g": 18, "carbs_g": 45}
   },
   {
     "name": "Fried Rice",
     "ingredients": ["rice", "eggs", "soy sauce"],
-    "instructions": "Fry rice with soy sauce and scrambled eggs."
+    "instructions": "Cook rice and let cool. Heat 1 tbsp oil in a pan over medium heat. Scramble eggs and set aside. Add rice to the pan, stir-fry 2-3 minutes, add soy sauce and cooked eggs, stir to combine.",
+    "prep_time_min": 10,
+    "cook_time_min": 10,
+    "heat": "medium",
+    "nutrition": {"calories": 350, "protein_g": 10, "fat_g": 8, "carbs_g": 60}
   },
   {
     "name": "Avocado Toast",
     "ingredients": ["bread", "avocado", "salt"],
-    "instructions": "Mash avocado, spread on toasted bread, sprinkle salt."
+    "instructions": "Toast bread slices. Mash avocado with a fork and spread on toast. Sprinkle a pinch of salt and optional pepper or chili flakes.",
+    "prep_time_min": 5,
+    "cook_time_min": 2,
+    "heat": "toaster / low-medium",
+    "nutrition": {"calories": 250, "protein_g": 6, "fat_g": 18, "carbs_g": 20}
   },
   {
     "name": "Scrambled Eggs",
     "ingredients": ["eggs", "milk", "butter"],
-    "instructions": "Whisk eggs with milk, cook with butter, stir until soft."
+    "instructions": "Whisk eggs and milk together. Melt butter in a pan over medium-low heat. Pour in egg mixture and gently stir until cooked softly. Serve immediately.",
+    "prep_time_min": 5,
+    "cook_time_min": 5,
+    "heat": "medium-low",
+    "nutrition": {"calories": 220, "protein_g": 12, "fat_g": 16, "carbs_g": 2}
   },
   {
-    "name": "Salad Bowl",
+    "name": "Simple Garden Salad",
     "ingredients": ["lettuce", "tomato", "olive oil"],
-    "instructions": "Chop veggies, toss with olive oil."
+    "instructions": "Wash and chop lettuce and tomatoes. Toss in a bowl with olive oil, salt, and pepper to taste. Serve fresh.",
+    "prep_time_min": 5,
+    "cook_time_min": 0,
+    "heat": "none",
+    "nutrition": {"calories": 120, "protein_g": 2, "fat_g": 10, "carbs_g": 6}
   },
   {
     "name": "Pasta Carbonara",
     "ingredients": ["pasta", "eggs", "cheese", "butter"],
-    "instructions": "Cook pasta according to package directions. While hot, mix with beaten eggs, grated cheese, and butter. The heat from the pasta will cook the eggs into a creamy sauce."
+    "instructions": "Cook pasta according to package directions (8-10 minutes). While hot, mix with beaten eggs, grated cheese, and butter, stirring quickly to make a creamy sauce without scrambling the eggs.",
+    "prep_time_min": 5,
+    "cook_time_min": 10,
+    "heat": "medium",
+    "nutrition": {"calories": 450, "protein_g": 18, "fat_g": 22, "carbs_g": 50}
   },
   {
     "name": "Caesar Salad",
     "ingredients": ["lettuce", "cheese", "bread"],
-    "instructions": "Chop romaine lettuce and place in a bowl. Cut bread into cubes and toast for croutons. Toss lettuce with croutons, grated cheese, and Caesar dressing."
+    "instructions": "Chop romaine lettuce, toast cubed bread for croutons. Toss lettuce with croutons, grated cheese, and Caesar dressing. Serve immediately.",
+    "prep_time_min": 10,
+    "cook_time_min": 5,
+    "heat": "medium",
+    "nutrition": {"calories": 300, "protein_g": 10, "fat_g": 18, "carbs_g": 20}
   },
   {
     "name": "Strawberry Banana Smoothie",
@@ -60,18 +104,30 @@
     "instructions": "Peel banana and add to blender with milk and strawberries. Blend until smooth and creamy. Add ice if desired."
   },
   {
-    "name": "Butter Naan",
-    "ingredients": ["naan", "butter"],
-    "instructions": "Warm naan bread in a pan or oven. Brush generously with melted butter while still hot. Serve immediately."
+    "name": "Cinnamon Toast",
+    "ingredients": ["bread", "butter", "milk"],
+    "instructions": "Toast bread. Spread butter. Mix cinnamon and sugar and sprinkle generously over buttered toast.",
+    "prep_time_min": 2,
+    "cook_time_min": 3,
+    "heat": "toaster / low",
+    "nutrition": {"calories": 150, "protein_g": 4, "fat_g": 6, "carbs_g": 20}
   },
   {
-    "name": "Egg Salad",
-    "ingredients": ["eggs", "lettuce", "bread"],
-    "instructions": "Boil eggs, peel, and chop. Mix with mayo and seasoning. Serve on lettuce leaves or bread."
+    "name": "Simple Tuna Salad",
+    "ingredients": ["tuna", "mayonnaise", "bread"],
+    "instructions": "Mix drained tuna with mayonnaise. Serve on two slices of bread as a simple sandwich.",
+    "prep_time_min": 5,
+    "cook_time_min": 0,
+    "heat": "none",
+    "nutrition": {"calories": 380, "protein_g": 25, "fat_g": 15, "carbs_g": 35}
   },
   {
-    "name": "Rice Bowl",
-    "ingredients": ["rice", "avocado", "soy sauce"],
-    "instructions": "Cook rice and place in a bowl. Top with sliced avocado and drizzle with soy sauce. Add sesame seeds if desired."
+    "name": "Microwave Oatmeal",
+    "ingredients": ["oats", "milk", "banana"],
+    "instructions": "Combine oats and milk in a bowl. Microwave for 90 seconds. Top with sliced banana and serve.",
+    "prep_time_min": 1,
+    "cook_time_min": 2,
+    "heat": "microwave",
+    "nutrition": {"calories": 280, "protein_g": 10, "fat_g": 5, "carbs_g": 50}
   }
 ]
