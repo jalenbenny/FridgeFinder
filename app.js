@@ -47,7 +47,7 @@ let allRecipes = [];
 let currentResults = [];
 let currentUser = null;
 let selectedRecipeForPlan = null;
-let selectedRecipeForComment = null; // Store recipe object for current modal
+let selectedRecipeForComment = null; 
 
 // -----------------
 // Load Recipes JSON
@@ -97,7 +97,7 @@ function getMealPlan(username) {
 function saveMealPlan(username, mealPlan) { localStorage.setItem(`mealPlan_${username}`, JSON.stringify(mealPlan)); }
 
 // -----------------
-// Emoji mapping (for warm icons)
+// Emoji mapping 
 // -----------------
 function getIngredientEmoji(ingredient) {
     const mapping = { "bread":"🥖","pasta":"🍝","cheese":"🧀","milk":"🥛","nuts":"🌰","eggs":"🥚","butter":"🧈","avocado":"🥑","tomato":"🍅","banana":"🍌","strawberry":"🍓","lettuce":"🥬","rice":"🍚","peanut butter":"🥜","jelly":"🍇","naan":"🍞","soy sauce":"🧂","olive oil":"🫒","salt":"🧂","tomato sauce":"🍅","chicken":"🍗","beef":"🥩","pork":"🥓","fish":"🐟","tuna":"🐟"};
@@ -106,7 +106,7 @@ function getIngredientEmoji(ingredient) {
 }
 
 // -----------------
-// Authentication Logic
+// Authentication Logic (Unchanged)
 // -----------------
 function showMainContent(username){
     authDiv.style.display='none';
@@ -152,7 +152,7 @@ signUpBtn.addEventListener('click', ()=>{
 signOutBtn.addEventListener('click', ()=>{ showAuth(); });
 
 // -----------------
-// Tabs Logic
+// Tabs Logic (Unchanged)
 // -----------------
 function switchTab(tabId) {
     tabContents.forEach(content => content.style.display = 'none');
@@ -197,7 +197,6 @@ function createIngredientBoxes(){
         const box=document.createElement('div'); 
         box.className='ingredient-box';
         const emoji=getIngredientEmoji(ing); 
-        // Use regex to strip non-word/non-space characters (emojis) before checking selection
         box.textContent=`${emoji} ${ing}`;
         box.title = `Filter by ${ing}`;
         
@@ -207,8 +206,8 @@ function createIngredientBoxes(){
 }
 
 /**
- * FIX 1: Robustly extracts the clean ingredient string from selected boxes.
- * Uses a regex to strip non-alphabetic/non-space characters, ensuring clean strings like 'cheese'.
+ * Retains the robust cleaning logic to ensure clean strings like 'cheese' 
+ * are extracted from the ingredient boxes.
  */
 function getSelectedIngredients(){ 
     return Array.from(document.querySelectorAll('#ingredients-container .ingredient-box.selected'))
@@ -217,35 +216,28 @@ function getSelectedIngredients(){
 function getSelectedAllergens(){ return Array.from(document.querySelectorAll('.allergy-filter:checked')).map(b=>b.value.toLowerCase()); }
 
 // -----------------
-// Find Recipes Logic
+// Recipe Filtering
 // -----------------
 function findRecipes(selectedIngredients,selectedAllergens){
+    if (selectedIngredients.length === 0) return []; // Old code's initial check
+
     return allRecipes.filter(recipe=>{
-        const ing = recipe.ingredients.map(i=>i.toLowerCase());
+        const recipeIngredients = recipe.ingredients.map(i=>i.toLowerCase());
         
-        // 1. Check allergens first
+        // 1. Check allergens first (Logic retained)
         for(const allergen of selectedAllergens){ 
-            if(allergensMatch(ing,allergen)) return false; 
+            if(allergensMatch(recipeIngredients,allergen)) return false; 
         }
         
-        // 2. Must include all selected ingredients
-        if (selectedIngredients.length > 0) {
-            /**
-             * FIX 2: Corrected Filtering Logic.
-             * Ensures ALL selected ingredients (sel) must be contained WITHIN 
-             * at least one of the recipe's ingredients (recipeIng).
-             */
-            return selectedIngredients.every(sel => 
-                ing.some(recipeIng => recipeIng.includes(sel))
-            );
-        }
-        
-        // If no ingredients are selected, and no allergens filter it, it passes
-        return true; 
+        // 2. IMPLEMENTS THE OLD, WORKING LOGIC:
+        // A recipe matches IF AND ONLY IF every single ingredient it requires 
+        // is present in the user's selected list. (Inventory Matching)
+        return recipeIngredients.every(i => selectedIngredients.includes(i));
     });
 }
 
 function allergensMatch(recipeIngredients,allergen){
+    // This logic is retained and slightly consolidated
     if(allergen==='gluten') return recipeIngredients.some(i=>i.includes('bread')||i.includes('pasta')||i.includes('naan')||i.includes('flour') || i.includes('oats'));
     if(allergen==='nuts') return recipeIngredients.some(i=>i.includes('nuts')||i.includes('peanut')||i.includes('almond')||i.includes('pecan'));
     if(allergen==='dairy') return recipeIngredients.some(i=>i.includes('cheese')||i.includes('milk')||i.includes('butter')||i.includes('cream')||i.includes('mayonnaise'));
@@ -313,12 +305,11 @@ function createRecipeCard(recipe, isFavoriteView=false){
     const favBtnClass = isFavorited ? 'fav-btn favorited' : 'fav-btn';
     const favBtnText = isFavorited ? '❤️ Favorited' : '🤍 Favorite';
     
-    // Defensive Coding Fix Applied
+    // Defensive Coding Fix (Retained)
     const calories = recipe.nutrition?.calories ?? 'N/A';
     const protein = recipe.nutrition?.protein_g ?? 'N/A';
     const fat = recipe.nutrition?.fat_g ?? 'N/A';
     const carbs = recipe.nutrition?.carbs_g ?? 'N/A';
-    // End Fix
 
     card.innerHTML = `
         <h3>${emojis} ${recipe.name}</h3>
@@ -349,11 +340,11 @@ function createRecipeCard(recipe, isFavoriteView=false){
     return card;
 }
 
-function renderRecipes(recipes, containerId, isFavoriteView = false){
+function renderRecipes(recipes, containerId='results', isFavoriteView = false){
     const container = document.getElementById(containerId);
     container.innerHTML='';
 
-    if(!recipes.length){ container.innerHTML='<div class="no-results">No recipes found. Try adjusting your filters!</div>'; return; }
+    if(!recipes.length){ container.innerHTML='<div class="no-results">No recipes found. Try adjusting your selections!</div>'; return; }
 
     recipes.forEach(recipe=>{
         const card = createRecipeCard(recipe, isFavoriteView);
@@ -372,7 +363,7 @@ function renderFavorites() {
 
 
 // -----------------
-// Comments Logic (General and Recipe)
+// Comments Logic (Retained)
 // -----------------
 function renderGeneralComments() {
     const comments = getGeneralComments();
@@ -383,7 +374,7 @@ function renderGeneralComments() {
         return;
     }
 
-    comments.slice().reverse().forEach(comment => { // Show newest first
+    comments.slice().reverse().forEach(comment => { 
         const commentDiv = document.createElement('div');
         commentDiv.className = 'comment';
         commentDiv.innerHTML = `<span class="comment-author">${comment.user}:</span> ${comment.text}`;
@@ -442,7 +433,7 @@ recipeCommentModalClose.addEventListener('click', () => {
 
 
 // -----------------
-// Weekly Plan Logic
+// Weekly Plan Logic (Retained)
 // -----------------
 function renderWeeklyPlan() {
     const plan = currentUser ? getMealPlan(currentUser) : null;
@@ -527,16 +518,15 @@ searchBtn.addEventListener('click',()=>{
     const selectedIngredients=getSelectedIngredients();
     const selectedAllergens=getSelectedAllergens();
     
-    // Debugging logs added here for verification
     console.log("Search button clicked!");
     console.log("Selected Ingredients:", selectedIngredients);
-    console.log("Selected Allergens:", selectedAllergens);
     
-    if(!selectedIngredients.length && !selectedAllergens.length){ 
+    if(selectedIngredients.length === 0 && selectedAllergens.length === 0){ 
         alert('Select at least one ingredient or allergen filter!'); 
         return; 
     }
-    
+
+    // Pass the cleaned ingredients to the fixed filtering function
     currentResults=findRecipes(selectedIngredients,selectedAllergens);
     console.log("Found Recipes:", currentResults.length);
     renderRecipes(currentResults, 'results');
