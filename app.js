@@ -136,19 +136,41 @@ function showAuth(){
 
 // Attach event listeners for auth buttons
 signInBtn.addEventListener('click', ()=>{
-    const user=usernameInput.value.trim(), pass=passwordInput.value;
+    const user = usernameInput.value.trim();
+    const pass = passwordInput.value;
+    
     if(!user||!pass){ authMessage.textContent='Enter username and password'; return; }
+    
     const users=getUsers();
-    if(users[user]&&users[user]===pass){ showMainContent(user); authMessage.textContent=''; }
-    else authMessage.textContent='Invalid username or password';
+    
+    // FIX: Ensure users[user] is checked AND the passwords match exactly.
+    if(users[user] && users[user] === pass){ 
+        showMainContent(user); 
+        authMessage.textContent=''; 
+    }
+    else {
+        authMessage.textContent='Invalid username or password';
+    }
 });
+
 signUpBtn.addEventListener('click', ()=>{
-    const user=usernameInput.value.trim(), pass=passwordInput.value;
+    const user = usernameInput.value.trim();
+    const pass = passwordInput.value;
+    
     if(!user||!pass){ authMessage.textContent='Enter username and password'; return; }
+    
     const users=getUsers();
-    if(users[user]){ authMessage.textContent='Username already exists'; return; }
-    saveUser(user,pass); showMainContent(user); authMessage.textContent='';
+    
+    if(users[user]){ 
+        authMessage.textContent='Username already exists'; 
+        return; 
+    }
+    
+    saveUser(user,pass); 
+    showMainContent(user); 
+    authMessage.textContent='';
 });
+
 signOutBtn.addEventListener('click', ()=>{ showAuth(); });
 
 // -----------------
@@ -550,3 +572,4 @@ window.addEventListener('load',async()=>{
         showAuth();
     }
 });
+
