@@ -143,7 +143,7 @@ signInBtn.addEventListener('click', ()=>{
     
     const users=getUsers();
     
-    // FIX: Ensure users[user] is checked AND the passwords match exactly.
+    // FIX: Correct authentication check logic
     if(users[user] && users[user] === pass){ 
         showMainContent(user); 
         authMessage.textContent=''; 
@@ -234,7 +234,7 @@ function getSelectedIngredients(){
 function getSelectedAllergens(){ return Array.from(document.querySelectorAll('.allergy-filter:checked')).map(b=>b.value.toLowerCase()); }
 
 // -----------------
-// Recipe Filtering - ORIGINAL (Failing) LOGIC HERE
+// Recipe Filtering - FIXED LOGIC
 // -----------------
 function findRecipes(selectedIngredients,selectedAllergens){
     if (selectedIngredients.length === 0 && selectedAllergens.length === 0) return allRecipes; // Return all if no filters applied
@@ -247,10 +247,10 @@ function findRecipes(selectedIngredients,selectedAllergens){
             if(allergensMatch(recipeIngredients,allergen)) return false; 
         }
         
-        // 2. Inventory Matching Logic (Recipe ingredients must be subset of selected ingredients)
+        // 2. Inventory Matching Logic (Recipe must contain all selected ingredients)
         if (selectedIngredients.length > 0) {
-            // ORIGINAL INCORRECT LINE: This checks if the recipe only uses selected ingredients.
-            return recipeIngredients.every(i => selectedIngredients.includes(i));
+            // FIX: Check if ALL selected ingredients are included in the recipe's ingredients.
+            return selectedIngredients.every(i => recipeIngredients.includes(i));
         }
 
         // If no ingredients are selected, but an allergen filter was applied, the recipe passed the allergen filter
@@ -359,10 +359,6 @@ function createRecipeCard(recipe, isFavoriteView=false){
     return card;
 }
 
-/**
- * FIX: This function now correctly iterates over the found recipes and 
- * calls createRecipeCard to render them to the DOM.
- */
 function renderRecipes(recipes, containerId='results', isFavoriteView = false){
     const container = document.getElementById(containerId);
     container.innerHTML=''; // Clear existing content (e.g., "No matches found")
@@ -571,5 +567,4 @@ window.addEventListener('load',async()=>{
     } else {
         showAuth();
     }
-});
-
+}); // <-- Final closing brackets added here
