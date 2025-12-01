@@ -41,25 +41,23 @@ const recipeCommentsList = document.getElementById('recipe-comments-list');
 const recipeCommentTextarea = document.getElementById('recipe-comment-textarea');
 const recipeCommentBtn = document.getElementById('recipe-comment-btn');
 
-
 // State Variables
 let allRecipes = [];
 let currentResults = [];
 let currentUser = null;
 let selectedRecipeForPlan = null;
-let selectedRecipeForComment = null; // Store recipe object for current modal
+let selectedRecipeForComment = null;
 
 // -----------------
-// Load Recipes JSON
+// Load Recipes from TheMealDB
 // -----------------
 async function loadRecipes() {
+    console.log('Loading recipes from TheMealDB...');
     try {
-        const res = await fetch('recipes.json'); 
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        allRecipes = await res.json();
+        allRecipes = await RemoteRecipes.loadDiverseRecipes();
         console.log('Recipes loaded:', allRecipes.length);
     } catch (err) {
-        console.error('Failed to load recipes.json:', err);
+        console.error('Failed to load recipes from TheMealDB:', err);
         document.getElementById('ingredients-container').innerHTML = `<div class="no-results">Error loading recipes: ${err.message}</div>`;
     }
 }
@@ -92,15 +90,14 @@ function getMealPlan(username) {
             plan[day] = { ...plan[day], ...storedPlan[day] };
         }
     }
-    return recipeIngredients.every(i => userIngredients.includes(i));
-  });
+    return plan;
 }
-    
+
+function saveMealPlan(username, plan) { localStorage.setItem(`mealPlan_${username}`, JSON.stringify(plan)); }
 
 // -----------------
-// Authentication Logic (NO EVENT LISTENERS)
+// Authentication Logic
 // -----------------
-
 function signIn() {
     const user = usernameInput.value.trim();
     const pass = passwordInput.value;
@@ -172,7 +169,6 @@ function showAuth() {
     document.getElementById('favorites-list').innerHTML = '';
 }
 
-
 // -----------------
 // Tabs Logic
 // -----------------
@@ -186,7 +182,6 @@ function switchTab(tabId) {
     if (activeContent) activeContent.style.display = 'block';
     if (activeButton) activeButton.classList.add('active');
 
-    // Re-render content specific to the tab being activated
     if (tabId === 'favorites') renderFavorites();
     if (tabId === 'plan') renderWeeklyPlan();
     if (tabId === 'general-comments') renderGeneralComments();
@@ -201,67 +196,113 @@ tabButtons.forEach(button => {
 // -----------------
 // Ingredient Boxes (Filters)
 // -----------------
-function getAllIngredients(){ 
-    const s=new Set(); 
-    allRecipes.forEach(r=>r.ingredients.forEach(i=>s.add(i.toLowerCase()))); 
-    return Array.from(s).sort(); 
+function getAllIngredients() {
+    const ingredients = new Set();
+    allRecipes.forEach(recipe => {
+        recipe.ingredients.forEach(ingredient => {
+            let normalized = ingredient.toLowerCase().trim();
+            
+            // Simple pluralization handling
+            if (normalized.endsWith('s') && normalized.length > 3) {
+                const keepPlural = ['peas', 'beans', 'lentils', 'oats', 'grits', 'olives'];
+                if (!keepPlural.includes(normalized)) {
+                    if (normalized.endsWith('es') && normalized.length > 4) {
+                        const beforeEs = normalized.slice(-3, -2);
+                        if (['o', 'h'].includes(beforeEs) || normalized.endsWith('ies')) {
+                            normalized = normalized.slice(0, -2);
+                        } else {
+                            normalized = normalized.slice(0, -1);
+                        }
+                    } else {
+                        normalized = normalized.slice(0, -1);
+                    }
+                }
+            }
+            
+            ingredients.add(normalized);
+        });
+    });
+    return Array.from(ingredients).sort();
 }
 
-function createIngredientBoxes(){
-    const container=document.getElementById('ingredients-container');
-    container.innerHTML='';
+function createIngredientBoxes() {
+    const container = document.getElementById('ingredients-container');
+    container.innerHTML = '';
     
-    if(allRecipes.length===0){ 
-        container.innerHTML='<div class="no-results">Loading recipes...</div>';
-        return; }
-    
-    const ingredients=getAllIngredients();
-    if(ingredients.length===0){ 
-        container.innerHTML='<div class="no-results">No ingredients found.</div>'; 
+    if (allRecipes.length === 0) {
+        container.innerHTML = '<div class="no-results">Loading recipes...</div>';
         return;
     }
     
-    ingredients.forEach(ing=>{
-        const box=document.createElement('div'); 
-        box.className='ingredient-box';
-        const emoji=getIngredientEmoji(ing); 
-        // Use regex to strip non-word/non-space characters (emojis) before checking selection
-        box.textContent=`${emoji} ${ing}`;
+    const ingredients = getAllIngredients();
+    if (ingredients.length === 0) {
+        container.innerHTML = '<div class="no-results">No ingredients found.</div>';
+        return;
+    }
+    
+    ingredients.forEach(ing => {
+        const box = document.createElement('div');
+        box.className = 'ingredient-box';
+        box.textContent = ing;
         box.title = `Filter by ${ing}`;
         
-        box.addEventListener('click',()=>box.classList.toggle('selected'));
+        box.addEventListener('click', () => box.classList.toggle('selected'));
         container.appendChild(box);
     });
 }
 
+function getIngredientEmoji(ingredient) {
+    const emojiMap = {
+        'chicken': '🍗', 'beef': '🥩', 'pork': '🥓', 'fish': '🐟', 'salmon': '🐟',
+        'egg': '🥚', 'cheese': '🧀', 'milk': '🥛', 'butter': '🧈',
+        'tomato': '🍅', 'potato': '🥔', 'carrot': '🥕', 'onion': '🧅', 'garlic': '🧄',
+        'bread': '🍞', 'pasta': '🍝', 'rice': '🍚',
+        'apple': '🍎', 'banana': '🍌', 'lemon': '🍋', 'strawberry': '🍓',
+        'mushroom': '🍄', 'pepper': '🌶️', 'broccoli': '🥦', 'corn': '🌽',
+        'avocado': '🥑', 'lettuce': '🥬', 'cucumber': '🥒'
+    };
+    return emojiMap[ingredient] || '';
+}
 
-function getSelectedIngredients(){ 
+function getSelectedIngredients() {
     return Array.from(document.querySelectorAll('#ingredients-container .ingredient-box.selected'))
-        .map(b=>b.textContent.replace(/[^\w\s]/g,'').trim().toLowerCase()); 
-}
-function getSelectedAllergens(){ return Array.from(document.querySelectorAll('.allergy-filter:checked')).map(b=>b.value.toLowerCase()); }
-
-// -----------------
-// Find Recipes Logic
-// -----------------
-function findRecipes(selectedIngredients,selectedAllergens){
-    return allRecipes.filter(recipe=>{
-        const ing = recipe.ingredients.map(i=>i.toLowerCase());
-        
-        //Check allergens first
-        for(const allergen of selectedAllergens){ 
-            if(allergensMatch(ing,allergen)) return false; 
-        }
-        
-        //Must include all selected ingredients
-        return selectedIngredients.every(sel => ing.includes(sel));
-    });
+        .map(b => b.textContent.replace(/[^\w\s]/g, '').trim().toLowerCase());
 }
 
-function allergensMatch(recipeIngredients,allergen){
-    if(allergen==='gluten') return recipeIngredients.some(i=>i.includes('bread')||i.includes('pasta')||i.includes('naan')||i.includes('flour'));
-    if(allergen==='nuts') return recipeIngredients.some(i=>i.includes('nuts')||i.includes('peanut')||i.includes('almond')||i.includes('pecan'));
-    if(allergen==='dairy') return recipeIngredients.some(i=>i.includes('cheese')||i.includes('milk')||i.includes('butter')||i.includes('cream'));
+function getSelectedAllergens() {
+    return Array.from(document.querySelectorAll('.allergy-filter:checked')).map(b => b.value.toLowerCase());
+}
+
+// -----------------
+// Find Recipes Logic with 50% matching
+// -----------------
+function findRecipes(userIngredients, selectedAllergens) {
+    if (userIngredients.length === 0) return [];
+
+    return allRecipes
+        .map(recipe => {
+            const recipeIngredients = recipe.ingredients.map(i => i.toLowerCase());
+
+            // Exclude allergens
+            for (const allergen of selectedAllergens) {
+                if (allergensMatch(recipeIngredients, allergen)) return null;
+            }
+
+            // Calculate match ratio
+            const matchCount = recipeIngredients.filter(i => userIngredients.includes(i)).length;
+            const matchRatio = matchCount / recipeIngredients.length;
+
+            return { recipe, matchRatio, matchCount, totalIngredients: recipeIngredients.length };
+        })
+        .filter(item => item !== null && item.matchRatio >= 0.5) // At least 50% match
+        .sort((a, b) => b.matchRatio - a.matchRatio) // Sort by best match
+        .map(item => item.recipe);
+}
+
+function allergensMatch(recipeIngredients, allergen) {
+    if (allergen === 'gluten') return recipeIngredients.some(i => i.includes('bread') || i.includes('pasta') || i.includes('naan') || i.includes('flour'));
+    if (allergen === 'nuts') return recipeIngredients.some(i => i.includes('nuts') || i.includes('peanut') || i.includes('almond') || i.includes('pecan'));
+    if (allergen === 'dairy') return recipeIngredients.some(i => i.includes('cheese') || i.includes('milk') || i.includes('butter') || i.includes('cream'));
     return false;
 }
 
@@ -283,7 +324,6 @@ function toggleFavorite(recipeName) {
 
     saveFavorites(currentUser, favorites);
     
-    // Re-render relevant sections
     renderRecipes(currentResults, 'results');
     if (document.querySelector('.tab-button[data-tab="favorites"]').classList.contains('active')) {
         renderFavorites();
@@ -312,33 +352,37 @@ function openCommentModal(recipeName) {
     recipeCommentModal.style.display = 'flex';
 }
 
-
 // -----------------
 // Render Recipes
 // -----------------
-function createRecipeCard(recipe, isFavoriteView=false){
-    const card = document.createElement('div'); 
+function createRecipeCard(recipe, isFavoriteView = false) {
+    const card = document.createElement('div');
     card.className = 'recipe-card';
     card.setAttribute('data-recipe-name', recipe.name);
 
-    const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
-    const isFavorited = currentUser ? getFavorites(currentUser).some(f=>f.name===recipe.name) : false;
+    const isFavorited = currentUser ? getFavorites(currentUser).some(f => f.name === recipe.name) : false;
     const favBtnClass = isFavorited ? 'fav-btn favorited' : 'fav-btn';
-    const favBtnText = isFavorited ? '❤️ Favorited' : '🤍 Favorite';
+    const favBtnText = isFavorited ? '★ Favorited' : '☆ Favorite';
+
+    // Build ingredient list with measurements if available
+    const ingredientsList = recipe.ingredientsWithMeasures && recipe.ingredientsWithMeasures.length > 0
+        ? recipe.ingredientsWithMeasures.map(ing => `• ${ing}`).join('<br>')
+        : recipe.ingredients.map(ing => `• ${ing}`).join('<br>');
+
+    // Format instructions
+    const formattedInstructions = recipe.instructions.replace(/\n/g, '<br>');
 
     card.innerHTML = `
-        <h3>${emojis} ${recipe.name}</h3>
+        <h3>${recipe.name}</h3>
         <div class="recipe-details">
-            <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-            <p><strong>Instructions:</strong> ${recipe.instructions.substring(0, 100)}...</p>
-            <p><strong>Time:</strong> ${recipe.prep_time_min} min prep, ${recipe.cook_time_min} min cook</p>
-            <p><strong>Nutrition:</strong> ${recipe.nutrition.calories} kcal</p>
+            <p><strong>Ingredients:</strong><br>${ingredientsList}</p>
+            <p><strong>Instructions:</strong><br>${formattedInstructions}</p>
         </div>
         <div class="recipe-actions">
             ${currentUser ? `<button class="${favBtnClass}" data-action="favorite">${favBtnText}</button>` : ''}
             <button class="add-to-plan-btn btn-secondary" data-action="plan">📅 Add to Plan</button>
             <button class="comment-btn btn-secondary" data-action="comment">💬 Comments</button>
-            ${isFavoriteView ? `<button class="remove-btn btn-secondary" data-action="remove-favorite">❌ Remove</button>` : ''}
+            ${isFavoriteView ? `<button class="remove-btn btn-secondary" data-action="remove-favorite">✕ Remove</button>` : ''}
         </div>
     `;
 
@@ -355,13 +399,16 @@ function createRecipeCard(recipe, isFavoriteView=false){
     return card;
 }
 
-function renderRecipes(recipes, containerId, isFavoriteView = false){
+function renderRecipes(recipes, containerId, isFavoriteView = false) {
     const container = document.getElementById(containerId);
-    container.innerHTML='';
+    container.innerHTML = '';
 
-    if(!recipes.length){ container.innerHTML='<div class="no-results">No recipes found. Try adjusting your filters!</div>'; return; }
+    if (!recipes.length) {
+        container.innerHTML = '<div class="no-results">No recipes found. Try adjusting your filters!</div>';
+        return;
+    }
 
-    recipes.forEach(recipe=>{
+    recipes.forEach(recipe => {
         const card = createRecipeCard(recipe, isFavoriteView);
         container.appendChild(card);
     });
@@ -376,7 +423,6 @@ function renderFavorites() {
     renderRecipes(favorites, 'favorites-list', true);
 }
 
-
 // -----------------
 // Comments Logic (General and Recipe)
 // -----------------
@@ -389,7 +435,7 @@ function renderGeneralComments() {
         return;
     }
 
-    comments.slice().reverse().forEach(comment => { // Show newest first
+    comments.slice().reverse().forEach(comment => {
         const commentDiv = document.createElement('div');
         commentDiv.className = 'comment';
         commentDiv.innerHTML = `<span class="comment-author">${comment.user}:</span> ${comment.text}`;
@@ -418,7 +464,7 @@ function renderRecipeComments(recipeName) {
         recipeCommentsList.innerHTML = '<div class="no-results">No comments yet. Share your thoughts!</div>';
         return;
     }
-    
+
     comments.slice().reverse().forEach(comment => {
         const commentDiv = document.createElement('div');
         commentDiv.className = 'recipe-comment';
@@ -446,7 +492,6 @@ recipeCommentModalClose.addEventListener('click', () => {
     selectedRecipeForComment = null;
 });
 
-
 // -----------------
 // Weekly Plan Logic
 // -----------------
@@ -469,7 +514,7 @@ function renderWeeklyPlan() {
 
         meals.forEach(meal => {
             const recipe = plan[day][meal];
-            const content = recipe ? 
+            const content = recipe ?
                 `<span class="meal-content">${recipe.name} <button class="remove-btn" data-day="${day}" data-meal="${meal}">X</button></span>` :
                 `Empty Slot`;
 
@@ -484,7 +529,6 @@ function renderWeeklyPlan() {
     });
 }
 
-// Remove meal from plan via delegation
 weeklyPlanContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
         const day = e.target.getAttribute('data-day');
@@ -511,8 +555,7 @@ planConfirmBtn.addEventListener('click', () => {
     if (!day || !meal || !selectedRecipeForPlan) return alert('Please select a day and meal.');
 
     const plan = getMealPlan(currentUser);
-    // Save minimal data to meal plan
-    const recipeStub = { 
+    const recipeStub = {
         name: selectedRecipeForPlan.name
     };
     
@@ -522,34 +565,61 @@ planConfirmBtn.addEventListener('click', () => {
 
     planModal.style.display = 'none';
     selectedRecipeForPlan = null;
-    renderWeeklyPlan(); // Update the plan tab
+    renderWeeklyPlan();
 });
-
 
 // -----------------
 // Search Button Action
 // -----------------
-searchBtn.addEventListener('click',()=>{
-    const selectedIngredients=getSelectedIngredients();
-    const selectedAllergens=getSelectedAllergens();
+searchBtn.addEventListener('click', () => {
+    const selectedIngredients = getSelectedIngredients();
+    const selectedAllergens = getSelectedAllergens();
     
-    if(!selectedIngredients.length && !selectedAllergens.length){ 
-        alert('Select at least one ingredient or allergen filter!'); 
-        return; 
+    if (!selectedIngredients.length && !selectedAllergens.length) {
+        alert('Select at least one ingredient or allergen filter!');
+        return;
     }
     
-    currentResults=findRecipes(selectedIngredients,selectedAllergens);
+    currentResults = findRecipes(selectedIngredients, selectedAllergens);
     renderRecipes(currentResults, 'results');
+});
+
+// Select All / Clear All Buttons
+// -----------------
+const selectAllBtn = document.getElementById('select-all-btn');
+const clearAllBtn = document.getElementById('clear-all-btn');
+
+selectAllBtn.addEventListener('click', () => {
+    const boxes = document.querySelectorAll('.ingredient-box');
+    boxes.forEach(box => box.classList.add('selected'));
+});
+
+clearAllBtn.addEventListener('click', () => {
+    const boxes = document.querySelectorAll('.ingredient-box');
+    boxes.forEach(box => box.classList.remove('selected'));
+});
+
+// -----------------
+// Auth Button Event Listeners
+// -----------------
+signInBtn.addEventListener('click', signIn);
+signUpBtn.addEventListener('click', signUp);
+signOutBtn.addEventListener('click', signOut);
+
+// Allow Enter key to submit on password field
+passwordInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        signIn();
+    }
 });
 
 // -----------------
 // Initialize
 // -----------------
-window.addEventListener('load',async()=>{
-    await loadRecipes(); 
+window.addEventListener('load', async () => {
+    await loadRecipes();
     createIngredientBoxes();
     
-    // Check for a remembered user
     const rememberedUser = localStorage.getItem('currentUser');
     if (rememberedUser) {
         showMainContent(rememberedUser);
