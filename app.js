@@ -96,15 +96,6 @@ signUpBtn.addEventListener('click', ()=>{
 signOutBtn.addEventListener('click', ()=>{ showAuth(); renderFavorites(); });
 
 // -----------------
-// Chalk button effect
-// -----------------
-function applyChalkButtonEffect(button) {
-    button.classList.add('chalk-btn');
-    button.addEventListener('mouseover',()=>button.classList.add('wiggle'));
-    button.addEventListener('mouseout',()=>button.classList.remove('wiggle'));
-}
-
-// -----------------
 // Ingredient Boxes
 // -----------------
 function getAllIngredients(){ const s=new Set(); allRecipes.forEach(r=>r.ingredients.forEach(i=>s.add(i.toLowerCase()))); return Array.from(s).sort(); }
@@ -129,9 +120,11 @@ function getSelectedAllergens(){ return Array.from(document.querySelectorAll('.a
 // -----------------
 function findRecipes(selectedIngredients,selectedAllergens){
     return allRecipes.filter(recipe=>{
-        const ing=recipe.ingredients.map(i=>i.toLowerCase());
+        const ing = recipe.ingredients.map(i=>i.toLowerCase());
+        // check allergens first
         for(const allergen of selectedAllergens){ if(allergensMatch(ing,allergen)) return false; }
-        return selectedIngredients.every(i=> ing.includes(i));
+        // must include all selected ingredients
+        return selectedIngredients.every(sel => ing.includes(sel));
     });
 }
 function allergensMatch(recipeIngredients,allergen){
@@ -145,14 +138,14 @@ function allergensMatch(recipeIngredients,allergen){
 // Render Recipes
 // -----------------
 function renderRecipes(recipes){
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
+    const resultsDiv=document.getElementById('results');
+    resultsDiv.innerHTML='';
     if(!recipes.length){ resultsDiv.innerHTML='<div class="no-results">No matches found!</div>'; return; }
-    recipes.forEach(recipe => {
-        const card = document.createElement('div'); card.className='recipe-card';
-        const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
-        const favorites = getFavorites(currentUser);
-        const isFavorited = favorites.some(f => f.name === recipe.name);
+    recipes.forEach(recipe=>{
+        const card=document.createElement('div'); card.className='recipe-card';
+        const emojis=recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
+        const favorites=getFavorites(currentUser);
+        const isFavorited=favorites.some(f=>f.name===recipe.name);
         card.innerHTML=`
             <h3>${emojis} ${recipe.name}</h3>
             <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
@@ -160,38 +153,7 @@ function renderRecipes(recipes){
             <p><strong>Prep:</strong> ${recipe.prep_time_min} min, <strong>Cook:</strong> ${recipe.cook_time_min} min at ${recipe.heat}</p>
             <p><strong>Nutrition:</strong> ${recipe.nutrition.calories} kcal, ${recipe.nutrition.protein_g}g protein, ${recipe.nutrition.fat_g}g fat, ${recipe.nutrition.carbs_g}g carbs</p>
         `;
-        const buttonsDiv = document.createElement('div');
-        const favButton = document.createElement('button'); favButton.textContent = isFavorited ? '★ Favorited':'☆ Favorite'; favButton.addEventListener('click',()=>toggleFavorite(recipe)); applyChalkButtonEffect(favButton);
-        const commentButton = document.createElement('button'); commentButton.textContent='💬 Comments'; commentButton.addEventListener('click',()=>toggleRecipeComments(recipe,card)); applyChalkButtonEffect(commentButton);
-        const addToPlanButton = document.createElement('button'); addToPlanButton.textContent='📅 Add to Plan'; addToPlanButton.addEventListener('click',()=>openDaySelector(recipe)); applyChalkButtonEffect(addToPlanButton);
-        buttonsDiv.appendChild(favButton); buttonsDiv.appendChild(commentButton); buttonsDiv.appendChild(addToPlanButton);
-        card.appendChild(buttonsDiv); resultsDiv.appendChild(card);
-    });
-}
-
-// -----------------
-// Weekly Plan: horizontal boxes
-// -----------------
-function renderWeeklyPlan(){
-    const weeklyPlanDiv=document.getElementById('weeklyPlan');
-    weeklyPlanDiv.innerHTML=''; weeklyPlanDiv.style.display='flex'; weeklyPlanDiv.style.gap='10px'; weeklyPlanDiv.style.flexWrap='wrap';
-    const days=['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday','Friday'];
-    const mealTypes=['breakfast','lunch','dinner'];
-    const mealPlan=getMealPlan(currentUser);
-
-    days.forEach(day=>{
-        const dayCard=document.createElement('div'); dayCard.className='day-card';
-        dayCard.style.border='2px solid #FFA347'; dayCard.style.borderRadius='8px'; dayCard.style.padding='8px';
-        dayCard.style.flex='1'; dayCard.style.minWidth='120px'; dayCard.style.background='#3D2B1F'; dayCard.style.color='#FFD699';
-        dayCard.innerHTML=`<h3 style="text-align:center">${day}</h3>`;
-        mealTypes.forEach(mealType=>{
-            const meal=mealPlan[day][mealType];
-            const mealSlot=document.createElement('div'); mealSlot.style.margin='4px 0'; mealSlot.style.padding='4px'; mealSlot.style.borderTop='1px dashed #FFD699';
-            if(meal){ mealSlot.innerHTML=`<strong>${mealType.charAt(0).toUpperCase()+mealType.slice(1)}:</strong> ${getIngredientEmoji(meal.ingredients[0])} ${meal.name}`; mealSlot.style.background='#5C3A21'; mealSlot.style.padding='4px'; mealSlot.style.borderRadius='4px'; }
-            else mealSlot.innerHTML=`<strong>${mealType.charAt(0).toUpperCase()+mealType.slice(1)}:</strong> Not planned`;
-            dayCard.appendChild(mealSlot);
-        });
-        weeklyPlanDiv.appendChild(dayCard);
+        resultsDiv.appendChild(card);
     });
 }
 
@@ -207,31 +169,8 @@ document.getElementById('search-btn').addEventListener('click',()=>{
 });
 
 // -----------------
-// Tabs
-// -----------------
-function setupTabs(){
-    const tabButtons=document.querySelectorAll('.tab-button');
-    const tabContents=document.querySelectorAll('.tab-content');
-    tabButtons.forEach(button=>{
-        button.addEventListener('click',()=>{
-            const target=button.dataset.tab;
-            tabButtons.forEach(b=>b.classList.remove('active'));
-            tabContents.forEach(c=>c.classList.remove('active'));
-            button.classList.add('active'); document.getElementById(target).classList.add('active');
-            if(target==='favorites') renderFavorites();
-            if(target==='comments') renderGeneralComments();
-            if(target==='plan') renderWeeklyPlan();
-        });
-    });
-}
-
-// -----------------
 // Initialize
 // -----------------
 window.addEventListener('load',async()=>{
-    await loadRecipes(); createIngredientBoxes(); setupTabs();
-    [signInBtn, signUpBtn, signOutBtn].forEach(btn => applyChalkButtonEffect(btn));
-    const savedUser=localStorage.getItem('currentUser');
-    if(savedUser && getUsers()[savedUser]) showMainContent(savedUser);
-    else showAuth();
+    await loadRecipes(); createIngredientBoxes();
 });
