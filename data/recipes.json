@@ -63,15 +63,6 @@
     "nutrition": {"calories": 250, "protein_g": 6, "fat_g": 18, "carbs_g": 20}
   },
   {
-    "name": "Berry Smoothie",
-    "ingredients": ["milk", "banana", "strawberry"],
-    "instructions": "Add banana, strawberries, and milk to a blender. Blend until smooth. Pour into a glass and serve chilled.",
-    "prep_time_min": 5,
-    "cook_time_min": 0,
-    "heat": "none",
-    "nutrition": {"calories": 180, "protein_g": 6, "fat_g": 2, "carbs_g": 35}
-  },
-  {
     "name": "Scrambled Eggs",
     "ingredients": ["eggs", "milk", "butter"],
     "instructions": "Whisk eggs and milk together. Melt butter in a pan over medium-low heat. Pour in egg mixture and gently stir until cooked softly. Serve immediately.",
@@ -108,13 +99,9 @@
     "nutrition": {"calories": 300, "protein_g": 10, "fat_g": 18, "carbs_g": 20}
   },
   {
-    "name": "Peanut Noodles",
-    "ingredients": ["pasta", "peanut butter", "soy sauce"],
-    "instructions": "Cook pasta. Mix peanut butter and soy sauce with hot water until smooth. Toss the warm pasta with the sauce and serve.",
-    "prep_time_min": 5,
-    "cook_time_min": 10,
-    "heat": "medium",
-    "nutrition": {"calories": 420, "protein_g": 14, "fat_g": 18, "carbs_g": 50}
+    "name": "Strawberry Banana Smoothie",
+    "ingredients": ["banana", "milk", "strawberry"],
+    "instructions": "Peel banana and add to blender with milk and strawberries. Blend until smooth and creamy. Add ice if desired."
   },
   {
     "name": "Cinnamon Toast",

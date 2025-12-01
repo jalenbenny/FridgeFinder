@@ -92,22 +92,8 @@ function getMealPlan(username) {
             plan[day] = { ...plan[day], ...storedPlan[day] };
         }
     }
-    return plan;
-}
-function saveMealPlan(username, mealPlan) { localStorage.setItem(`mealPlan_${username}`, JSON.stringify(mealPlan)); }
-
-// -----------------
-// Emoji mapping (for warm icons)
-// -----------------
-function getIngredientEmoji(ingredient) {
-    const mapping = { "bread":"🥖","pasta":"🍝","cheese":"🧀","milk":"🥛","nuts":"🌰","eggs":"🥚","butter":"🧈","avocado":"🥑","tomato":"🍅","banana":"🍌","strawberry":"🍓","lettuce":"🥬","rice":"🍚","peanut butter":"🥜","jelly":"🍇","naan":"🍞","soy sauce":"🧂","olive oil":"🫒","salt":"🧂","tomato sauce":"🍅","chicken":"🍗","beef":"🥩","pork":"🥓","fish":"🐟"};
-    for(const key in mapping) { 
-        if(ingredient.toLowerCase().includes(key)) {
-            return mapping[key]; 
-        }
-    }
-
-    return "🧺"; // fallback emoji
+    return recipeIngredients.every(i => userIngredients.includes(i));
+  });
 }
     
 
