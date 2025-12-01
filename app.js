@@ -1,7 +1,15 @@
 // -----------------
 // Helper Functions
 // -----------------
+let useRemoteRecipes = false;
+
 async function loadRecipes() {
+  if (useRemoteRecipes) {
+    console.log('Loading recipes from TheMealDB...');
+    return await RemoteRecipes.loadDiverseRecipes();
+  }
+  
+  // Load local recipes
   try {
     const res = await fetch("data/recipes.json");
     if (!res.ok) {
@@ -195,7 +203,63 @@ async function initializeApp() {
   createIngredientBoxes(allIngredients);
   renderFavorites();
   
+  // Wire up toggle functionality
+  setupDataSourceToggle();
+  
   console.log("App initialized successfully!");
+}
+
+function setupDataSourceToggle() {
+  const checkbox = document.getElementById('use-remote-recipes');
+  const refreshBtn = document.getElementById('refresh-remote-btn');
+  const selectAllBtn = document.getElementById('select-all-btn');
+  
+  checkbox.addEventListener('change', async (e) => {
+    useRemoteRecipes = e.target.checked;
+    refreshBtn.disabled = !useRemoteRecipes;
+    
+    console.log(`Switching to ${useRemoteRecipes ? 'remote' : 'local'} recipes...`);
+    allRecipes = await loadRecipes();
+    
+    const allIngredients = getAllIngredients(allRecipes);
+    createIngredientBoxes(allIngredients);
+    
+    // Clear search results when switching
+    currentResults = [];
+    document.getElementById('results').innerHTML = '';
+  });
+  
+  refreshBtn.addEventListener('click', async () => {
+    if (!useRemoteRecipes) return;
+    
+    console.log('Refreshing remote recipes...');
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Loading...';
+    
+    try {
+      allRecipes = await loadRecipes();
+      console.log('Loaded recipes:', allRecipes.length);
+      
+      const allIngredients = getAllIngredients(allRecipes);
+      console.log('All ingredients:', allIngredients.length);
+      
+      createIngredientBoxes(allIngredients);
+      
+      refreshBtn.textContent = 'Refresh remote data';
+      refreshBtn.disabled = false;
+      alert(`Remote recipes refreshed! Loaded ${allRecipes.length} recipes with ${allIngredients.length} unique ingredients.`);
+    } catch (error) {
+      console.error('Error refreshing recipes:', error);
+      refreshBtn.textContent = 'Refresh remote data';
+      refreshBtn.disabled = false;
+      alert('Failed to refresh recipes. Check console for details.');
+    }
+  });
+  
+  selectAllBtn.addEventListener('click', () => {
+    const allBoxes = document.querySelectorAll('.ingredient-box');
+    allBoxes.forEach(box => box.classList.add('selected'));
+  });
 }
 
 async function performSearch() {
