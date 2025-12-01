@@ -6,150 +6,116 @@
     <title>FridgeFinder | Your Recipe Planner</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
-       <div id="authDiv" class="auth-section">
-    <h1>🍎 FridgeFinder 🔍</h1>
-    <h2> Sign In or Create Account</h2>
-    
-    <form id="authForm" class="auth-form">
-        <input type="text" id="username" placeholder="Username (e.g., chef_anna)">
-        <input type="password" id="password" placeholder="Password">
-        
-        <div class="auth-buttons">
-            <button type="button" id="signInBtn" class="btn btn-primary">🔑 Sign In</button>
-            <button type="button" id="signUpBtn" class="btn btn-secondary">📝 Create Account</button>
-        </div>
-        
-        <p id="authMessage" class="auth-message"></p>
-    </form>
-</div>
 
+        <!-- AUTHENTICATION SCREEN -->
+        <div id="authDiv" class="auth-section">
+            <h1>🍎 FridgeFinder 🔍</h1>
+            <h2>Sign In or Create Account</h2>
+
+            <div class="auth-form">
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+
+                <div class="auth-buttons">
+                    <button id="signInBtn" class="btn btn-primary">🔑 Sign In</button>
+                    <button id="signUpBtn" class="btn btn-secondary">📝 Create Account</button>
+                </div>
+
+                <p id="authMessage" class="auth-message"></p>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT (hidden until login) -->
         <div id="mainContent" style="display:none;">
-            <div class="header">
-                <h1>🍎 FridgeFinder</h1>
-                <div class="header-user">
-                    <p>Welcome, <strong id="displayUser"></strong></p>
-                    <button id="signOutBtn" class="btn btn-secondary">👋 Sign Out</button>
-                </div>
-            </div>
-            
-            <div class="tab-container">
-                <button class="tab-button active" data-tab="search">🍳 Find Recipes</button>
-                <button class="tab-button" data-tab="plan">📅 Weekly Plan</button>
+
+            <header class="top-bar">
+                <p>Signed in as <span id="displayUser"></span></p>
+                <button id="signOutBtn" class="btn btn-danger">Sign Out</button>
+            </header>
+
+            <!-- TAB BUTTONS -->
+            <div class="tabs">
+                <button class="tab-button" data-tab="search">🔎 Search Recipes</button>
                 <button class="tab-button" data-tab="favorites">⭐ Favorites</button>
-                <button class="tab-button" data-tab="general-comments">💬 Community</button>
+                <button class="tab-button" data-tab="general-comments">💬 General Comments</button>
+                <button class="tab-button" data-tab="weekly-plan">📅 Weekly Plan</button>
             </div>
 
-            <div id="search" class="tab-content active" style="display:block;">
-                <section class="section-header">
-                    <h2>🛒 Filter by Ingredients</h2>
-                </section>
-                
-                <h3>Select Ingredients You Have:</h3>
-                <div id="ingredients-container">
-                    <div class="no-results">Loading ingredients...</div>
-                </div>
-
-                <h3>Filter Allergens Out:</h3>
-                <div class="allergy-filters">
-                    <label>
-                        <input type="checkbox" class="allergy-filter" value="gluten"> 🌾 Gluten-Free
-                    </label>
-                    <label>
-                        <input type="checkbox" class="allergy-filter" value="nuts"> 🥜 Nut-Free
-                    </label>
-                    <label>
-                        <input type="checkbox" class="allergy-filter" value="dairy"> 🥛 Dairy-Free
-                    </label>
-                </div>
-
-                <button id="search-btn" class="btn btn-primary">🔍 Search Recipes</button>
-
-                <hr>
-
-                <section>
-                    <h3>📊 Search Results</h3>
-                    <div id="results">
-                        </div>
-                </section>
+            <!-- TAB CONTENT: SEARCH -->
+            <div id="search" class="tab-content">
+                <h2>Find Recipes</h2>
+                <button id="search-btn" class="btn btn-primary">Search All Recipes</button>
+                <div id="results"></div>
             </div>
 
-            <div id="plan" class="tab-content" style="display:none;">
-                <section class="section-header">
-                    <h2>📅 Weekly Meal Plan</h2>
-                </section>
-                
-                <div id="weekly-plan-container" class="weekly-plan">
-                    </div>
-            </div>
-
+            <!-- TAB CONTENT: FAVORITES -->
             <div id="favorites" class="tab-content" style="display:none;">
-                <section class="section-header">
-                    <h2>⭐ My Favorite Recipes</h2>
-                </section>
-                <div id="favorites-list">
-                    </div>
+                <h2>Your Favorites</h2>
+                <div id="favorites-list"></div>
             </div>
 
+            <!-- TAB CONTENT: GENERAL COMMENTS -->
             <div id="general-comments" class="tab-content" style="display:none;">
-                <section class="section-header">
-                    <h2>💬 Community Board</h2>
-                </section>
-                <div class="comment-input-area">
-                    <textarea id="general-comment-textarea" placeholder="Share your cooking tips, questions, or general thoughts..."></textarea>
-                    <button id="general-comment-btn" class="btn btn-primary">📢 Post</button>
-                </div>
-                
-                <h3>Recent Posts:</h3>
-                <div id="general-comments-container">
-                    </div>
+                <h2>General Comments</h2>
+
+                <textarea id="general-comment-textarea" placeholder="Write a comment..."></textarea>
+                <button id="general-comment-btn" class="btn btn-primary">Post Comment</button>
+
+                <div id="general-comments-container"></div>
+            </div>
+
+            <!-- TAB CONTENT: WEEKLY PLAN -->
+            <div id="weekly-plan" class="tab-content" style="display:none;">
+                <h2>Weekly Meal Planner</h2>
+                <div id="weekly-plan-container"></div>
             </div>
         </div>
-    </div> <div id="plan-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" id="plan-modal-close">&times;</span>
-            <h3>Add Recipe to Plan</h3>
-            <p>Recipe: <strong id="plan-recipe-name"></strong></p>
 
-            <label for="plan-day-select">Select Day:</label>
-            <select id="plan-day-select">
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
-            </select>
+        <!-- PLAN MODAL -->
+        <div id="plan-modal" class="modal">
+            <div class="modal-content">
+                <span id="plan-modal-close" class="close">&times;</span>
+                <h3>Assign to Weekly Plan</h3>
 
-            <label for="plan-meal-select">Select Meal:</label>
-            <select id="plan-meal-select">
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-            </select>
-            <br>
-            <button id="plan-confirm-btn" class="btn btn-primary">Confirm Add to Plan</button>
+                <p id="plan-recipe-name"></p>
+
+                <label>Day:</label>
+                <select id="plan-day-select">
+                    <option>Sunday</option><option>Monday</option><option>Tuesday</option>
+                    <option>Wednesday</option><option>Thursday</option>
+                    <option>Friday</option><option>Saturday</option>
+                </select>
+
+                <label>Meal:</label>
+                <select id="plan-meal-select">
+                    <option>breakfast</option>
+                    <option>lunch</option>
+                    <option>dinner</option>
+                </select>
+
+                <button id="plan-confirm-btn" class="btn btn-primary">Confirm</button>
+            </div>
         </div>
-    </div>
 
-    <div id="recipe-comment-modal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="modal-close" id="recipe-comment-modal-close">&times;</span>
-            <h3 id="comment-recipe-name">Comments for [Recipe Name]</h3>
-            
-            <div id="recipe-comments-list">
-                </div>
+        <!-- RECIPE COMMENT MODAL -->
+        <div id="recipe-comment-modal" class="modal">
+            <div class="modal-content">
+                <span id="recipe-comment-modal-close" class="close">&times;</span>
 
-            <div class="comment-input-area">
-                <textarea id="recipe-comment-textarea" placeholder="Add your review or cooking notes..."></textarea>
+                <h3 id="comment-recipe-name"></h3>
+
+                <textarea id="recipe-comment-textarea" placeholder="Write a comment..."></textarea>
                 <button id="recipe-comment-btn" class="btn btn-primary">Post Comment</button>
+
+                <div id="recipe-comments-list"></div>
             </div>
         </div>
+
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
-
