@@ -20,6 +20,9 @@ const searchBtn = document.getElementById('search-btn');
 const resultsDiv = document.getElementById('results');
 const ingredientsInput = document.getElementById('ingredients-input');
 
+// Ingredients display container
+const ingredientsContainer = document.getElementById('ingredients-container');
+
 // General Comments elements
 const generalCommentsContainer = document.getElementById('general-comments-container');
 const generalCommentTextarea = document.getElementById('general-comment-textarea');
@@ -57,12 +60,36 @@ async function loadRecipes() {
         const res = await fetch('data/recipes.json');
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         allRecipes = await res.json();
+
         console.log('Recipes loaded:', allRecipes.length);
+        populateIngredientList();
+
     } catch (err) {
         console.error('Failed to load recipes.json:', err);
-        document.getElementById('ingredients-container').innerHTML =
+        ingredientsContainer.innerHTML =
             `<div class="no-results">Error loading recipes: ${err.message}</div>`;
     }
+}
+
+// -----------------
+// Populate ingredient list dynamically
+// -----------------
+function populateIngredientList() {
+    const ingredientSet = new Set();
+
+    allRecipes.forEach(r => {
+        r.ingredients.forEach(i => ingredientSet.add(i));
+    });
+
+    const sorted = [...ingredientSet].sort();
+
+    ingredientsContainer.innerHTML =
+        sorted.map(ing => `
+            <label class="ingredient-option">
+                <input type="checkbox" class="ingredient-checkbox" value="${ing}">
+                ${ing}
+            </label>
+        `).join('');
 }
 
 // -----------------
@@ -117,25 +144,6 @@ function saveMealPlan(username, mealPlan) {
 }
 
 // -----------------
-// Emoji Mapping
-// -----------------
-function getIngredientEmoji(ingredient) {
-    const mapping = {
-        "bread": "🥖", "pasta": "🍝", "cheese": "🧀", "milk": "🥛",
-        "nuts": "🌰", "eggs": "🥚", "butter": "🧈", "avocado": "🥑",
-        "tomato": "🍅", "banana": "🍌", "strawberry": "🍓", "lettuce": "🥬",
-        "rice": "🍚", "peanut butter": "🥜", "jelly": "🍇", "naan": "🍞",
-        "soy sauce": "🧂", "olive oil": "🫒", "salt": "🧂", "tomato sauce": "🍅",
-        "chicken": "🍗", "beef": "🥩", "pork": "🥓", "fish": "🐟", "tuna": "🐟"
-    };
-
-    for (const key in mapping) {
-        if (ingredient.toLowerCase().includes(key)) return mapping[key];
-    }
-    return "";
-}
-
-// -----------------
 // Authentication Logic
 // -----------------
 function showMainContent(username) {
@@ -164,7 +172,9 @@ function showAuth() {
     document.getElementById('favorites-list').innerHTML = '';
 }
 
-// Attach event listeners for auth buttons
+// -----------------
+// Attach Auth Events
+// -----------------
 signInBtn.addEventListener('click', () => {
     const user = usernameInput.value.trim();
     const pass = passwordInput.value.trim();
@@ -181,74 +191,220 @@ signInBtn.addEventListener('click', () => {
 signUpBtn.addEventListener('click', () => {
     const user = usernameInput.value.trim();
     const pass = passwordInput.value.trim();
-    if (!user || !pass) return;
-
     const users = getUsers();
+
+    if (!user || !pass) {
+        authMessage.textContent = 'Enter username and password.';
+        return;
+    }
+
     if (users[user]) {
         authMessage.textContent = 'Username already exists.';
         return;
     }
 
     saveUser(user, pass);
-    authMessage.textContent = 'Account created! Please sign in.';
+    authMessage.textContent = 'Account created. You may sign in.';
 });
 
 signOutBtn.addEventListener('click', showAuth);
 
-// --------------------------
-// FIXED SEARCH FUNCTIONALITY
-// --------------------------
-searchBtn.addEventListener('click', () => {
-    const query = ingredientsInput.value.trim().toLowerCase();
-    resultsDiv.innerHTML = '';
+// -----------------
+// Tab Switching
+// -----------------
+function switchTab(tabId) {
+    tabContents.forEach(c => c.style.display = 'none');
+    tabButtons.forEach(b => b.classList.remove('active'));
 
-    if (!query) {
-        resultsDiv.innerHTML = `<div class="no-results">Enter ingredients to search.</div>`;
+    document.getElementById(`${tabId}-tab`).style.display = 'block';
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+}
+
+tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+// -----------------
+// SEARCH FUNCTIONALITY
+// -----------------
+searchBtn.addEventListener('click', () => {
+    const checked = [...document.querySelectorAll('.ingredient-checkbox:checked')]
+        .map(i => i.value.toLowerCase());
+
+    if (checked.length === 0) {
+        resultsDiv.innerHTML = '<div class="no-results">Select at least one ingredient.</div>';
         return;
     }
 
-    const queryIngredients = query.split(',').map(i => i.trim());
-
     currentResults = allRecipes.filter(recipe =>
-        queryIngredients.every(q =>
+        checked.every(q =>
             recipe.ingredients.some(ing => ing.toLowerCase().includes(q))
         )
     );
 
     if (currentResults.length === 0) {
-        resultsDiv.innerHTML = `<div class="no-results">No matching recipes found.</div>`;
+        resultsDiv.innerHTML = '<div class="no-results">No matching recipes found.</div>';
         return;
     }
 
     renderResults(currentResults);
 });
 
-// Render results into the DOM
 function renderResults(recipes) {
     resultsDiv.innerHTML = recipes.map(recipe => `
         <div class="recipe-card">
             <h3>${recipe.name}</h3>
             <p><strong>Ingredients:</strong> ${recipe.ingredients.join(', ')}</p>
-            <button class="add-to-plan-btn" data-name="${recipe.name}">Add to Weekly Plan</button>
-            <button class="comment-btn" data-name="${recipe.name}">Comments</button>
+
             <button class="favorite-btn" data-name="${recipe.name}">Add to Favorites</button>
+            <button class="comment-btn" data-name="${recipe.name}">Comments</button>
+            <button class="add-to-plan-btn" data-name="${recipe.name}">Add to Weekly Plan</button>
         </div>
     `).join('');
 
     attachRecipeButtons();
 }
 
-// -----------------
-// Favorites, Weekly Plan, Comments, Tabs
-// -----------------
+function attachRecipeButtons() {
+    document.querySelectorAll('.favorite-btn').forEach(btn => {
+        btn.addEventListener('click', () => addFavorite(btn.dataset.name));
+    });
 
+    document.querySelectorAll('.comment-btn').forEach(btn => {
+        btn.addEventListener('click', () => openRecipeComments(btn.dataset.name));
+    });
+
+    document.querySelectorAll('.add-to-plan-btn').forEach(btn => {
+        btn.addEventListener('click', () => openPlanModal(btn.dataset.name));
+    });
+}
 
 // -----------------
-// Load on start
+// FAVORITES
 // -----------------
-window.addEventListener('DOMContentLoaded', async () => {
+function addFavorite(recipeName) {
+    const favs = getFavorites(currentUser);
+    if (!favs.includes(recipeName)) {
+        favs.push(recipeName);
+        saveFavorites(currentUser, favs);
+        renderFavorites();
+    }
+}
+
+function renderFavorites() {
+    const favs = getFavorites(currentUser);
+    const list = document.getElementById('favorites-list');
+
+    if (favs.length === 0) {
+        list.innerHTML = '<div class="no-results">No favorites yet.</div>';
+        return;
+    }
+
+    list.innerHTML = favs.map(f => `<div class="favorite-item">${f}</div>`).join('');
+}
+
+// -----------------
+// COMMENTS
+// -----------------
+function openRecipeComments(recipeName) {
+    selectedRecipeForComment = recipeName;
+    commentRecipeName.textContent = recipeName;
+
+    const comments = getRecipeComments(recipeName);
+    recipeCommentsList.innerHTML = comments.length
+        ? comments.map(c => `<div class="comment">${c}</div>`).join('')
+        : '<div class="no-results">No comments yet.</div>';
+
+    recipeCommentModal.style.display = 'block';
+}
+
+recipeCommentBtn.addEventListener('click', () => {
+    const text = recipeCommentTextarea.value.trim();
+    if (!text) return;
+
+    const comments = getRecipeComments(selectedRecipeForComment);
+    comments.push(text);
+    saveRecipeComments(selectedRecipeForComment, comments);
+
+    openRecipeComments(selectedRecipeForComment);
+    recipeCommentTextarea.value = '';
+});
+
+recipeCommentModalClose.addEventListener('click', () => {
+    recipeCommentModal.style.display = 'none';
+});
+
+// -----------------
+// GENERAL COMMENTS
+// -----------------
+function renderGeneralComments() {
+    const comments = getGeneralComments();
+
+    generalCommentsContainer.innerHTML = comments.length
+        ? comments.map(c => `<div class="comment">${c}</div>`).join('')
+        : '<div class="no-results">No general comments yet.</div>';
+}
+
+generalCommentBtn.addEventListener('click', () => {
+    const text = generalCommentTextarea.value.trim();
+    if (!text) return;
+
+    const comments = getGeneralComments();
+    comments.push(text);
+    saveGeneralComments(comments);
+
+    renderGeneralComments();
+    generalCommentTextarea.value = '';
+});
+
+// -----------------
+// WEEKLY PLAN
+// -----------------
+function openPlanModal(recipeName) {
+    selectedRecipeForPlan = recipeName;
+    planRecipeName.textContent = recipeName;
+    planModal.style.display = 'block';
+}
+
+planModalClose.addEventListener('click', () => {
+    planModal.style.display = 'none';
+});
+
+planConfirmBtn.addEventListener('click', () => {
+    const day = planDaySelect.value;
+    const meal = planMealSelect.value;
+
+    if (!day || !meal) return;
+
+    const plan = getMealPlan(currentUser);
+    plan[day][meal] = selectedRecipeForPlan;
+    saveMealPlan(currentUser, plan);
+
+    renderWeeklyPlan();
+    planModal.style.display = 'none';
+});
+
+function renderWeeklyPlan() {
+    const plan = getMealPlan(currentUser);
+
+    weeklyPlanContainer.innerHTML = Object.keys(plan).map(day => `
+        <div class="plan-day">
+            <h4>${day}</h4>
+            <p>Breakfast: ${plan[day].breakfast || '-'}</p>
+            <p>Lunch: ${plan[day].lunch || '-'}</p>
+            <p>Dinner: ${plan[day].dinner || '-'}</p>
+        </div>
+    `).join('');
+}
+
+// -----------------
+// On Page Load
+// -----------------
+window.onload = async () => {
     await loadRecipes();
 
     const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) showMainContent(savedUser);
-});
+    if (savedUser) {
+        showMainContent(savedUser);
+    }
+};
