@@ -205,10 +205,6 @@ function createIngredientBoxes(){
     });
 }
 
-/**
- * FIX 1: Extracts clean ingredient string for filtering.
- * Uses a regex to strip non-alphabetic/non-space characters, ensuring clean strings like 'cheese'.
- */
 function getSelectedIngredients(){ 
     return Array.from(document.querySelectorAll('#ingredients-container .ingredient-box.selected'))
         .map(b => b.textContent.replace(/[^a-z\s]/gi, '').trim().toLowerCase()); 
@@ -219,7 +215,7 @@ function getSelectedAllergens(){ return Array.from(document.querySelectorAll('.a
 // Recipe Filtering
 // -----------------
 function findRecipes(selectedIngredients,selectedAllergens){
-    if (selectedIngredients.length === 0 && selectedAllergens.length === 0) return allRecipes; 
+    if (selectedIngredients.length === 0 && selectedAllergens.length === 0) return allRecipes; // Return all if no filters applied
 
     return allRecipes.filter(recipe=>{
         const recipeIngredients = recipe.ingredients.map(i=>i.toLowerCase());
@@ -229,12 +225,9 @@ function findRecipes(selectedIngredients,selectedAllergens){
             if(allergensMatch(recipeIngredients,allergen)) return false; 
         }
         
-        // 2. ROBUST FILTERING FIX: Ensure ALL selected items are found 
-        // within the recipe's ingredients.
+        // 2. Inventory Matching Logic (Recipe ingredients must be subset of selected ingredients)
         if (selectedIngredients.length > 0) {
-            return selectedIngredients.every(sel => 
-                recipeIngredients.some(recipeIng => recipeIng.includes(sel))
-            );
+            return recipeIngredients.every(i => selectedIngredients.includes(i));
         }
 
         // If no ingredients are selected, but an allergen filter was applied, the recipe passed the allergen filter
@@ -345,9 +338,13 @@ function createRecipeCard(recipe, isFavoriteView=false){
     return card;
 }
 
+/**
+ * FIX: This function now correctly iterates over the found recipes and 
+ * calls createRecipeCard to render them to the DOM.
+ */
 function renderRecipes(recipes, containerId='results', isFavoriteView = false){
     const container = document.getElementById(containerId);
-    container.innerHTML=''; 
+    container.innerHTML=''; // Clear existing content (e.g., "No matches found")
 
     if(!recipes.length){ 
         container.innerHTML='<div class="no-results">No recipes found. Try adjusting your selections!</div>'; 
@@ -443,4 +440,114 @@ recipeCommentModalClose.addEventListener('click', () => {
 // -----------------
 // Weekly Plan Logic (Retained)
 // -----------------
-function renderWeeklyPlan()
+function renderWeeklyPlan() {
+    const plan = currentUser ? getMealPlan(currentUser) : null;
+    weeklyPlanContainer.innerHTML = '';
+    
+    if (!plan) {
+        weeklyPlanContainer.innerHTML = '<div class="no-results">Sign in to start your weekly meal plan.</div>';
+        return;
+    }
+
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const meals = ['breakfast', 'lunch', 'dinner'];
+
+    days.forEach(day => {
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        dayCard.innerHTML = `<h4>${day}</h4>`;
+
+        meals.forEach(meal => {
+            const recipe = plan[day][meal];
+            const content = recipe ? 
+                `<span class="meal-content">${recipe.name} <button class="remove-btn" data-day="${day}" data-meal="${meal}">X</button></span>` :
+                `Empty Slot`;
+
+            const mealSlot = document.createElement('div');
+            mealSlot.className = 'meal-slot';
+            mealSlot.innerHTML = `<strong>${meal.charAt(0).toUpperCase() + meal.slice(1)}:</strong> ${content}`;
+
+            dayCard.appendChild(mealSlot);
+        });
+
+        weeklyPlanContainer.appendChild(dayCard);
+    });
+}
+
+// Remove meal from plan via delegation
+weeklyPlanContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-btn')) {
+        const day = e.target.getAttribute('data-day');
+        const meal = e.target.getAttribute('data-meal');
+        
+        if (currentUser && day && meal) {
+            const plan = getMealPlan(currentUser);
+            plan[day][meal] = null;
+            saveMealPlan(currentUser, plan);
+            renderWeeklyPlan();
+        }
+    }
+});
+
+planModalClose.addEventListener('click', () => {
+    planModal.style.display = 'none';
+    selectedRecipeForPlan = null;
+});
+
+planConfirmBtn.addEventListener('click', () => {
+    const day = planDaySelect.value;
+    const meal = planMealSelect.value;
+
+    if (!day || !meal || !selectedRecipeForPlan) return alert('Please select a day and meal.');
+
+    const plan = getMealPlan(currentUser);
+    // Save minimal data to meal plan
+    const recipeStub = { 
+        name: selectedRecipeForPlan.name
+    };
+    
+    plan[day][meal] = recipeStub;
+    saveMealPlan(currentUser, plan);
+    alert(`${selectedRecipeForPlan.name} added to your ${day} ${meal}!`);
+
+    planModal.style.display = 'none';
+    selectedRecipeForPlan = null;
+    renderWeeklyPlan(); // Update the plan tab
+});
+
+
+// -----------------
+// Search Button Action
+// -----------------
+searchBtn.addEventListener('click',()=>{
+    const selectedIngredients=getSelectedIngredients();
+    const selectedAllergens=getSelectedAllergens();
+    
+    console.log("Search button clicked!");
+    console.log("Selected Ingredients:", selectedIngredients);
+    
+    if(selectedIngredients.length === 0 && selectedAllergens.length === 0){ 
+        alert('Select at least one ingredient or allergen filter!'); 
+        return; 
+    }
+
+    currentResults=findRecipes(selectedIngredients,selectedAllergens);
+    console.log("Found Recipes:", currentResults.length);
+    renderRecipes(currentResults, 'results');
+});
+
+// -----------------
+// Initialize
+// -----------------
+window.addEventListener('load',async()=>{
+    await loadRecipes(); 
+    createIngredientBoxes();
+    
+    // Check for a remembered user
+    const rememberedUser = localStorage.getItem('currentUser');
+    if (rememberedUser) {
+        showMainContent(rememberedUser);
+    } else {
+        showAuth();
+    }
+});
