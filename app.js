@@ -243,8 +243,7 @@ function createIngredientBoxes() {
     ingredients.forEach(ing => {
         const box = document.createElement('div');
         box.className = 'ingredient-box';
-        const emoji = getIngredientEmoji(ing);
-        box.textContent = `${emoji} ${ing}`;
+        box.textContent = ing;
         box.title = `Filter by ${ing}`;
         
         box.addEventListener('click', () => box.classList.toggle('selected'));
@@ -361,7 +360,6 @@ function createRecipeCard(recipe, isFavoriteView = false) {
     card.className = 'recipe-card';
     card.setAttribute('data-recipe-name', recipe.name);
 
-    const emojis = recipe.ingredients.map(getIngredientEmoji).filter(Boolean).join(' ');
     const isFavorited = currentUser ? getFavorites(currentUser).some(f => f.name === recipe.name) : false;
     const favBtnClass = isFavorited ? 'fav-btn favorited' : 'fav-btn';
     const favBtnText = isFavorited ? '★ Favorited' : '☆ Favorite';
@@ -375,7 +373,7 @@ function createRecipeCard(recipe, isFavoriteView = false) {
     const formattedInstructions = recipe.instructions.replace(/\n/g, '<br>');
 
     card.innerHTML = `
-        <h3>${emojis} ${recipe.name}</h3>
+        <h3>${recipe.name}</h3>
         <div class="recipe-details">
             <p><strong>Ingredients:</strong><br>${ingredientsList}</p>
             <p><strong>Instructions:</strong><br>${formattedInstructions}</p>
@@ -584,6 +582,21 @@ searchBtn.addEventListener('click', () => {
     
     currentResults = findRecipes(selectedIngredients, selectedAllergens);
     renderRecipes(currentResults, 'results');
+});
+
+// Select All / Clear All Buttons
+// -----------------
+const selectAllBtn = document.getElementById('select-all-btn');
+const clearAllBtn = document.getElementById('clear-all-btn');
+
+selectAllBtn.addEventListener('click', () => {
+    const boxes = document.querySelectorAll('.ingredient-box');
+    boxes.forEach(box => box.classList.add('selected'));
+});
+
+clearAllBtn.addEventListener('click', () => {
+    const boxes = document.querySelectorAll('.ingredient-box');
+    boxes.forEach(box => box.classList.remove('selected'));
 });
 
 // -----------------
