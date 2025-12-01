@@ -1,25 +1,34 @@
 /* -------------------
-   General Theme
+   General Warm Theme
 ------------------- */
 body {
     margin: 0;
-    font-family: 'Permanent Marker', cursive;
-    background-color: #2D1F10;
-    color: #FFD699;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #FFF8EB;
+    color: #5C3A21;
 }
 
-h1,h2,h3,h4,h5,h6 { font-family: 'Permanent Marker', cursive; color:#FFD699; }
-
-button {
-    font-family: 'Permanent Marker', cursive;
-    cursor: pointer;
+/* -------------------
+   Headings
+------------------- */
+h1,h2,h3,h4,h5,h6 {
+    color: #B8732E;
 }
 
 /* -------------------
    Tabs
 ------------------- */
+.tab-button {
+    padding: 8px 16px;
+    margin-right: 4px;
+    border: 2px solid #FFA347;
+    border-radius: 8px;
+    background-color: #FFE0B2;
+    color: #5C3A21;
+    cursor: pointer;
+}
 .tab-button.active {
-    background: #FFA347;
+    background-color: #FFA347;
     color: #3D2B1F;
 }
 
@@ -27,18 +36,22 @@ button {
    Recipe Cards
 ------------------- */
 .recipe-card {
-    background: #3D2B1F;
-    color: #FFD699;
-    border: 2px dashed #FFD699;
+    background-color: #FFF3E0;
+    color: #5C3A21;
+    border: 2px solid #FFA347;
     border-radius: 12px;
     padding: 12px;
     margin: 8px 0;
 }
-
 .recipe-card h3 { margin-top:0; }
 
 .fav-btn, .comment-btn, .add-to-plan-btn {
     margin-right:4px;
+    padding:4px 8px;
+    border:1px solid #B8732E;
+    border-radius:6px;
+    background-color:#FFE0B2;
+    cursor:pointer;
 }
 
 /* -------------------
@@ -48,10 +61,10 @@ button {
     display:inline-block;
     margin:4px;
     padding:6px 10px;
-    border:2px dashed #FFD699;
+    border:2px solid #FFA347;
     border-radius:8px;
-    background:#3D2B1F;
-    color:#FFD699;
+    background:#FFF3E0;
+    color:#5C3A21;
     cursor:pointer;
     transition: all 0.15s ease-in-out;
 }
@@ -64,8 +77,8 @@ button {
    Weekly Plan
 ------------------- */
 .day-card {
-    background:#3D2B1F;
-    color:#FFD699;
+    background:#FFF3E0;
+    color:#5C3A21;
     border:2px solid #FFA347;
     border-radius:8px;
     padding:8px;
@@ -77,39 +90,17 @@ button {
 .meal-slot {
     margin:4px 0;
     padding:4px;
-    border-top:1px dashed #FFD699;
+    border-top:1px dashed #B8732E;
     border-radius:4px;
 }
 
 /* -------------------
-   General Comments
+   Comments
 ------------------- */
-.comment, .recipe-comment { margin:4px 0; padding:4px; background:#5C3A21; border-radius:6px; }
-
-/* -------------------
-   Buttons: Chalk/Wiggle
-------------------- */
-.chalk-btn {
-    border: 2px dashed #FFD699;
-    border-radius: 12px;
-    background-color: #3D2B1F;
-    color: #FFD699;
-    font-family: 'Permanent Marker', cursive;
-    font-weight: bold;
-    padding: 0.5rem 1rem;
-    margin: 0.2rem;
-    transition: all 0.15s ease-in-out;
-    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+.comment, .recipe-comment {
+    margin:4px 0;
+    padding:4px;
+    background:#FFE0B2;
+    border-radius:6px;
+    border:1px solid #B8732E;
 }
-
-@keyframes wiggle {
-    0% { transform: rotate(0deg); }
-    15% { transform: rotate(-2deg); }
-    30% { transform: rotate(2deg); }
-    45% { transform: rotate(-2deg); }
-    60% { transform: rotate(2deg); }
-    75% { transform: rotate(-1deg); }
-    100% { transform: rotate(0deg); }
-}
-
-.wiggle { animation: wiggle 0.3s ease-in-out; }
