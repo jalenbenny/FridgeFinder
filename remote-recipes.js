@@ -119,17 +119,17 @@ const RemoteRecipes = {
     console.log('Fetching recipes from TheMealDB...');
     const allMeals = new Map(); // Use Map to deduplicate by ID
     
-    // Use familiar cuisines - American, British, Italian, French tend to have more recognizable recipes
-    const areas = ['American', 'British', 'Italian', 'French', 'Mexican'];
-    const categories = ['Chicken', 'Beef', 'Pasta'];
+    // Expanded list of cuisines for more variety
+    const areas = ['American', 'British', 'Italian', 'French', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 'Greek'];
+    const categories = ['Chicken', 'Beef', 'Pasta', 'Seafood', 'Vegetarian', 'Dessert', 'Pork', 'Lamb', 'Side'];
     
-    // Fetch from familiar cuisines
+    // Fetch from multiple cuisines
     for (const area of areas) {
       console.log(`Fetching ${area} recipes...`);
       const meals = await this.fetchByArea(area);
       
-      // Get details for first 8 recipes from each area
-      const mealsToFetch = meals.slice(0, 8);
+      // Get details for first 12 recipes from each area (increased from 8)
+      const mealsToFetch = meals.slice(0, 12);
       
       for (const meal of mealsToFetch) {
         if (!allMeals.has(meal.idMeal)) {
@@ -141,12 +141,13 @@ const RemoteRecipes = {
       }
     }
     
-    // Add some popular categories too
+    // Add recipes from popular categories
     for (const category of categories) {
       console.log(`Fetching ${category} recipes...`);
       const meals = await this.fetchByCategory(category);
       
-      const mealsToFetch = meals.slice(0, 5);
+      // Get details for first 8 recipes from each category (increased from 5)
+      const mealsToFetch = meals.slice(0, 8);
       
       for (const meal of mealsToFetch) {
         if (!allMeals.has(meal.idMeal)) {
