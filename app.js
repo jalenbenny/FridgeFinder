@@ -32,6 +32,10 @@ const planRecipeName = document.getElementById('plan-recipe-name');
 const planDaySelect = document.getElementById('plan-day-select');
 const planMealSelect = document.getElementById('plan-meal-select');
 const planConfirmBtn = document.getElementById('plan-confirm-btn');
+const newPlanBtn = document.getElementById('new-plan-btn');
+const savePlanBtn = document.getElementById('save-plan-btn');
+const loadPlanSelect = document.getElementById('load-plan-select');
+const suggestionsList = document.getElementById('suggestions-list');
 
 // Recipe Comments Modal elements
 const recipeCommentModal = document.getElementById('recipe-comment-modal');
@@ -95,6 +99,34 @@ function getMealPlan(username) {
 
 function saveMealPlan(username, plan) { localStorage.setItem(`mealPlan_${username}`, JSON.stringify(plan)); }
 
+function getSavedPlans(username) {
+    const key = `savedPlans_${username}`;
+    return JSON.parse(localStorage.getItem(key) || '{}');
+}
+
+function saveNamedPlan(username, planName, plan) {
+    const savedPlans = getSavedPlans(username);
+    savedPlans[planName] = plan;
+    localStorage.setItem(`savedPlans_${username}`, JSON.stringify(savedPlans));
+}
+
+function loadNamedPlan(username, planName) {
+    const savedPlans = getSavedPlans(username);
+    return savedPlans[planName] || null;
+}
+
+function updateLoadPlanDropdown() {
+    if (!currentUser) return;
+    const savedPlans = getSavedPlans(currentUser);
+    loadPlanSelect.innerHTML = '<option disabled selected>-- Load Saved Plan --</option>';
+    Object.keys(savedPlans).forEach(planName => {
+        const option = document.createElement('option');
+        option.value = planName;
+        option.textContent = planName;
+        loadPlanSelect.appendChild(option);
+    });
+}
+
 // -----------------
 // Authentication Logic
 // -----------------
@@ -151,6 +183,7 @@ function showMainContent(username) {
     renderFavorites();
     renderGeneralComments();
     renderWeeklyPlan();
+    updateLoadPlanDropdown();
 
     switchTab('search');
 }
@@ -202,24 +235,107 @@ function getAllIngredients() {
         recipe.ingredients.forEach(ingredient => {
             let normalized = ingredient.toLowerCase().trim();
             
-            // Simple pluralization handling
+            // Improved pluralization handling
             if (normalized.endsWith('s') && normalized.length > 3) {
-                const keepPlural = ['peas', 'beans', 'lentils', 'oats', 'grits', 'olives'];
+                // Keep these words as-is (always plural or proper form)
+                const keepPlural = ['peas', 'beans', 'lentils', 'oats', 'grits', 'olives', 
+                                   'strawberries', 'blueberries', 'raspberries', 'cranberries', 
+                                   'blackberries', 'cherries', 'pears', 'apples', 'grapes',
+                                   'onions', 'potatoes', 'tomatoes', 'carrots', 'peppers',
+                                   'eggs', 'mushrooms', 'noodles', 'chips', 'cookies'];
+                
                 if (!keepPlural.includes(normalized)) {
-                    if (normalized.endsWith('es') && normalized.length > 4) {
-                        const beforeEs = normalized.slice(-3, -2);
-                        if (['o', 'h'].includes(beforeEs) || normalized.endsWith('ies')) {
-                            normalized = normalized.slice(0, -2);
-                        } else {
-                            normalized = normalized.slice(0, -1);
+                    // Handle -ies ending (berries, cherries) -> remove -ies, add -y
+                    if (normalized.endsWith('ies') && normalized.length > 4) {
+                        const base = normalized.slice(0, -3);
+                        // Don't singularize if it ends in a vowel before 'ies'
+                        if (!'aeiou'.includes(base[base.length - 1])) {
+                            normalized = base + 'y';
                         }
-                    } else {
+                    }
+                    // Handle -oes ending (tomatoes, potatoes) -> remove -es
+                    else if (normalized.endsWith('oes') && normalized.length > 4) {
+                        normalized = normalized.slice(0, -2);
+                    }
+                    // Handle -shes, -ches ending -> remove -es
+                    else if ((normalized.endsWith('shes') || normalized.endsWith('ches')) && normalized.length > 5) {
+                        normalized = normalized.slice(0, -2);
+                    }
+                    // Handle -sses ending (glasses) -> remove -es
+                    else if (normalized.endsWith('sses') && normalized.length > 5) {
+                        normalized = normalized.slice(0, -2);
+                    }
+                    // Default: just remove the 's'
+                    else if (!normalized.endsWith('ss') && !normalized.endsWith('us')) {
                         normalized = normalized.slice(0, -1);
                     }
                 }
             }
             
-            ingredients.add(normalized);
+            // Consolidate similar ingredients into common names
+            const consolidationMap = {
+                // Eggs
+                'egg': 'eggs',
+                'egg white': 'eggs',
+                'egg yolk': 'eggs',
+                'beaten egg': 'eggs',
+                
+                // Flour types
+                'plain flour': 'flour',
+                'all-purpose flour': 'flour',
+                'self-raising flour': 'flour',
+                'self-rising flour': 'flour',
+                'wheat flour': 'flour',
+                
+                // Milk types
+                'whole milk': 'milk',
+                'skim milk': 'milk',
+                'skimmed milk': 'milk',
+                '2% milk': 'milk',
+                
+                // Cream types
+                'heavy cream': 'cream',
+                'double cream': 'cream',
+                'single cream': 'cream',
+                'whipping cream': 'cream',
+                
+                // Sugar types
+                'granulated sugar': 'sugar',
+                'caster sugar': 'sugar',
+                'white sugar': 'sugar',
+                'brown sugar': 'sugar',
+                
+                // Butter
+                'salted butter': 'butter',
+                'unsalted butter': 'butter',
+                
+                // Oil
+                'vegetable oil': 'oil',
+                'olive oil': 'olive oil',
+                'canola oil': 'oil',
+                'cooking oil': 'oil',
+                
+                // Salt
+                'sea salt': 'salt',
+                'kosher salt': 'salt',
+                'table salt': 'salt',
+                
+                // Pepper
+                'black pepper': 'pepper',
+                'ground pepper': 'pepper',
+                'white pepper': 'pepper'
+            };
+            
+            // Check if this ingredient should be consolidated
+            let finalIngredient = normalized;
+            for (const [key, value] of Object.entries(consolidationMap)) {
+                if (normalized === key || normalized.includes(key)) {
+                    finalIngredient = value;
+                    break;
+                }
+            }
+            
+            ingredients.add(finalIngredient);
         });
     });
     return Array.from(ingredients).sort();
@@ -300,9 +416,45 @@ function findRecipes(userIngredients, selectedAllergens) {
 }
 
 function allergensMatch(recipeIngredients, allergen) {
-    if (allergen === 'gluten') return recipeIngredients.some(i => i.includes('bread') || i.includes('pasta') || i.includes('naan') || i.includes('flour'));
-    if (allergen === 'nuts') return recipeIngredients.some(i => i.includes('nuts') || i.includes('peanut') || i.includes('almond') || i.includes('pecan'));
-    if (allergen === 'dairy') return recipeIngredients.some(i => i.includes('cheese') || i.includes('milk') || i.includes('butter') || i.includes('cream'));
+    const ingredientsLower = recipeIngredients.map(i => i.toLowerCase());
+    
+    if (allergen === 'gluten') {
+        const glutenItems = [
+            'bread', 'pasta', 'naan', 'flour', 'wheat', 'barley', 'rye', 
+            'couscous', 'semolina', 'farina', 'spelt', 'bulgur', 'malt',
+            'noodles', 'crackers', 'baguette', 'tortilla', 'pita', 'croissant',
+            'breadcrumbs', 'spaghetti', 'macaroni', 'lasagna', 'linguine',
+            'fettuccine', 'penne', 'orzo', 'cereal', 'biscuit', 'scone'
+        ];
+        return ingredientsLower.some(ingredient => 
+            glutenItems.some(item => ingredient.includes(item))
+        );
+    }
+    
+    if (allergen === 'nuts') {
+        const nutItems = [
+            'nut', 'peanut', 'almond', 'pecan', 'walnut', 'cashew',
+            'pistachio', 'hazelnut', 'macadamia', 'brazil nut', 'pine nut',
+            'chestnut', 'nutmeg', 'peanut butter', 'almond milk'
+        ];
+        return ingredientsLower.some(ingredient => 
+            nutItems.some(item => ingredient.includes(item))
+        );
+    }
+    
+    if (allergen === 'dairy') {
+        const dairyItems = [
+            'cheese', 'milk', 'butter', 'cream', 'yogurt', 'yoghurt',
+            'cheddar', 'mozzarella', 'parmesan', 'feta', 'brie', 'gouda',
+            'ricotta', 'cottage cheese', 'sour cream', 'whipped cream',
+            'ice cream', 'custard', 'buttermilk', 'ghee', 'paneer',
+            'mascarpone', 'goat cheese', 'blue cheese', 'cream cheese'
+        ];
+        return ingredientsLower.some(ingredient => 
+            dairyItems.some(item => ingredient.includes(item))
+        );
+    }
+    
     return false;
 }
 
@@ -567,6 +719,96 @@ planConfirmBtn.addEventListener('click', () => {
     selectedRecipeForPlan = null;
     renderWeeklyPlan();
 });
+
+// -----------------
+// New Plan / Save Plan / Load Plan
+// -----------------
+newPlanBtn.addEventListener('click', () => {
+    if (!confirm('Create a new empty plan? This will clear your current plan.')) return;
+    const emptyPlan = { Sunday: {}, Monday: {}, Tuesday: {}, Wednesday: {}, Thursday: {}, Friday: {}, Saturday: {} };
+    ['breakfast','lunch','dinner'].forEach(meal => {
+        Object.keys(emptyPlan).forEach(day => emptyPlan[day][meal] = null);
+    });
+    saveMealPlan(currentUser, emptyPlan);
+    renderWeeklyPlan();
+    alert('New empty plan created!');
+});
+
+savePlanBtn.addEventListener('click', () => {
+    const planName = prompt('Enter a name for this meal plan:');
+    if (!planName || !planName.trim()) return alert('Plan name cannot be empty.');
+    const currentPlan = getMealPlan(currentUser);
+    saveNamedPlan(currentUser, planName.trim(), currentPlan);
+    updateLoadPlanDropdown();
+    alert(`Plan "${planName}" saved successfully!`);
+});
+
+loadPlanSelect.addEventListener('change', () => {
+    const planName = loadPlanSelect.value;
+    if (!planName) return;
+    const plan = loadNamedPlan(currentUser, planName);
+    if (plan) {
+        saveMealPlan(currentUser, plan);
+        renderWeeklyPlan();
+        alert(`Plan "${planName}" loaded!`);
+    }
+    loadPlanSelect.selectedIndex = 0;
+});
+
+// -----------------
+// Suggestions Panel Logic
+// -----------------
+document.querySelectorAll('.suggestion-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const mealType = btn.getAttribute('data-meal');
+        showMealSuggestions(mealType);
+    });
+});
+
+function showMealSuggestions(mealType) {
+    // Get recipes appropriate for the meal type from our loaded recipes
+    let suggestions = [];
+    
+    if (allRecipes.length > 0) {
+        // Use actual recipe names from TheMealDB
+        suggestions = allRecipes.slice(0, 8).map(r => r.name);
+    } else {
+        // Fallback suggestions if recipes haven't loaded yet
+        const exampleSuggestions = {
+            breakfast: ['Pancakes', 'Oatmeal', 'Smoothie Bowl', 'French Toast', 'Breakfast Burrito'],
+            lunch: ['Chicken Salad', 'Veggie Wrap', 'Grilled Cheese', 'Caesar Salad', 'Turkey Sandwich'],
+            dinner: ['Spaghetti Bolognese', 'Grilled Salmon', 'Stir Fry Vegetables', 'Roast Chicken', 'Beef Tacos']
+        };
+        suggestions = exampleSuggestions[mealType] || [];
+    }
+
+    suggestionsList.innerHTML = '';
+
+    suggestions.forEach(recipeName => {
+        const li = document.createElement('li');
+        li.style.cursor = 'pointer';
+        li.style.margin = '5px 0';
+        li.style.padding = '5px';
+        li.style.borderRadius = '4px';
+        li.style.transition = 'background-color 0.2s';
+        li.textContent = recipeName;
+        
+        li.addEventListener('mouseenter', () => {
+            li.style.backgroundColor = 'rgba(0,0,0,0.1)';
+        });
+        li.addEventListener('mouseleave', () => {
+            li.style.backgroundColor = 'transparent';
+        });
+        
+        li.addEventListener('click', () => {
+            selectedRecipeForPlan = { name: recipeName };
+            planRecipeName.textContent = recipeName;
+            planMealSelect.value = mealType;
+            planModal.style.display = 'flex';
+        });
+        suggestionsList.appendChild(li);
+    });
+}
 
 // -----------------
 // Search Button Action

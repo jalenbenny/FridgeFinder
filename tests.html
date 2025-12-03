@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FridgeFinder - Unit Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #e85d04;
+            border-bottom: 3px solid #e85d04;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #ddd;
+            background: #f9f9f9;
+        }
+        .test-case.pass {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-case.fail {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .test-result {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .test-error {
+            color: #dc3545;
+            font-family: monospace;
+            font-size: 0.85em;
+            margin-top: 5px;
+            padding: 5px;
+            background: #fff;
+            border-radius: 3px;
+        }
+        .summary {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .summary-card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+        }
+        .summary-card.total { background: #007bff; }
+        .summary-card.pass { background: #28a745; }
+        .summary-card.fail { background: #dc3545; }
+        .summary-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        button {
+            background: #e85d04;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #dc2f02;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 FridgeFinder Unit Tests</h1>
+    
+    <button onclick="runAllTests()">▶️ Run All Tests</button>
+    <button onclick="clearResults()">🗑️ Clear Results</button>
+    
+    <div class="summary" id="summary" style="display:none;">
+        <div class="summary-card total">
+            <div class="summary-number" id="total-count">0</div>
+            <div class="summary-label">Total Tests</div>
+        </div>
+        <div class="summary-card pass">
+            <div class="summary-number" id="pass-count">0</div>
+            <div class="summary-label">Passed</div>
+        </div>
+        <div class="summary-card fail">
+            <div class="summary-number" id="fail-count">0</div>
+            <div class="summary-label">Failed</div>
+        </div>
+    </div>
+
+    <div id="test-results"></div>
+
+    <script src="remote-recipes.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            tests: []
+        };
+
+        function assert(condition, testName, expected, actual) {
+            testResults.total++;
+            const passed = condition;
+            
+            if (passed) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+
+            testResults.tests.push({
+                name: testName,
+                passed: passed,
+                expected: expected,
+                actual: actual
+            });
+
+            return passed;
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            testResults = { total: 0, passed: 0, failed: 0, tests: [] };
+        }
+
+        function displayResults() {
+            const resultsDiv = document.getElementById('test-results');
+            const summaryDiv = document.getElementById('summary');
+            
+            summaryDiv.style.display = 'flex';
+            document.getElementById('total-count').textContent = testResults.total;
+            document.getElementById('pass-count').textContent = testResults.passed;
+            document.getElementById('fail-count').textContent = testResults.failed;
+
+            const sections = {};
+            
+            testResults.tests.forEach(test => {
+                const sectionName = test.name.split(':')[0];
+                if (!sections[sectionName]) {
+                    sections[sectionName] = [];
+                }
+                sections[sectionName].push(test);
+            });
+
+            let html = '';
+            for (const [sectionName, tests] of Object.entries(sections)) {
+                html += `<div class="test-section">
+                    <h2>${sectionName}</h2>`;
+                
+                tests.forEach(test => {
+                    const className = test.passed ? 'pass' : 'fail';
+                    const icon = test.passed ? '✓' : '✗';
+                    html += `<div class="test-case ${className}">
+                        <div class="test-name">${icon} ${test.name}</div>
+                        <div class="test-result">Expected: ${test.expected} | Got: ${test.actual}</div>
+                        ${!test.passed ? `<div class="test-error">Assertion failed</div>` : ''}
+                    </div>`;
+                });
+                
+                html += '</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        async function runAllTests() {
+            clearResults();
+            console.log('🧪 Starting tests...');
+
+            // Test Authentication Functions
+            testAuthentication();
+
+            // Test LocalStorage Functions
+            testLocalStorage();
+
+            // Test Recipe Matching
+            await testRecipeMatching();
+
+            // Test Allergen Filtering
+            testAllergenFiltering();
+
+            // Test Meal Plan Functions
+            testMealPlanFunctions();
+
+            // Test Favorites Functions
+            testFavoritesFunctions();
+
+            // Test Comments Functions
+            testCommentsFunctions();
+
+            // Test Saved Plans Functions
+            testSavedPlansFunctions();
+
+            displayResults();
+            console.log('✅ Tests complete!');
+        }
+
+        function testAuthentication() {
+            // Clear test data
+            localStorage.removeItem('users');
+            
+            // Test user creation
+            saveUser('testuser', 'password123');
+            const users = getUsers();
+            assert(
+                users['testuser'] === 'password123',
+                'Authentication: User creation',
+                'password123',
+                users['testuser']
+            );
+
+            // Test user retrieval
+            assert(
+                Object.keys(users).includes('testuser'),
+                'Authentication: User exists',
+                'true',
+                Object.keys(users).includes('testuser')
+            );
+
+            // Cleanup
+            localStorage.removeItem('users');
+        }
+
+        function testLocalStorage() {
+            // Test favorites storage
+            const testFavorites = [
+                { name: 'Pancakes', ingredients: ['flour', 'eggs'] }
+            ];
+            saveFavorites('testuser', testFavorites);
+            const retrieved = getFavorites('testuser');
+            
+            assert(
+                retrieved.length === 1 && retrieved[0].name === 'Pancakes',
+                'LocalStorage: Favorites save/retrieve',
+                '1 favorite with name Pancakes',
+                `${retrieved.length} favorite(s) with name ${retrieved[0]?.name}`
+            );
+
+            // Cleanup
+            localStorage.removeItem('favorites_testuser');
+        }
+
+        async function testRecipeMatching() {
+            // Mock recipe data
+            allRecipes = [
+                { name: 'Pancakes', ingredients: ['flour', 'eggs', 'milk', 'sugar'], source: 'test' },
+                { name: 'Omelet', ingredients: ['eggs', 'cheese', 'butter'], source: 'test' },
+                { name: 'Salad', ingredients: ['lettuce', 'tomato', 'cucumber', 'olive oil'], source: 'test' }
+            ];
+
+            // Test 50% matching
+            const results = findRecipes(['eggs', 'flour'], []);
+            assert(
+                results.length >= 1,
+                'Recipe Matching: 50% ingredient match',
+                'At least 1 recipe',
+                `${results.length} recipe(s)`
+            );
+
+            // Test sorting by match ratio
+            const eggsFlourResults = findRecipes(['eggs', 'flour'], []);
+            if (eggsFlourResults.length > 1) {
+                assert(
+                    eggsFlourResults[0].name === 'Pancakes',
+                    'Recipe Matching: Sort by best match',
+                    'Pancakes first (2/4 = 50%)',
+                    `${eggsFlourResults[0].name} first`
+                );
+            }
+        }
+
+        function testAllergenFiltering() {
+            allRecipes = [
+                { name: 'Bread', ingredients: ['flour', 'water', 'yeast'], source: 'test' },
+                { name: 'Peanut Butter', ingredients: ['peanuts', 'salt'], source: 'test' },
+                { name: 'Cheese Pizza', ingredients: ['flour', 'cheese', 'tomato'], source: 'test' }
+            ];
+
+            // Test gluten filtering
+            const noGluten = findRecipes([], ['gluten']);
+            const hasGlutenRecipe = noGluten.some(r => r.name === 'Bread' || r.name === 'Cheese Pizza');
+            assert(
+                !hasGlutenRecipe,
+                'Allergen Filter: Gluten-free',
+                'No bread or pizza',
+                hasGlutenRecipe ? 'Found gluten recipe' : 'No gluten recipes'
+            );
+
+            // Test nut filtering
+            const noNuts = findRecipes([], ['nuts']);
+            const hasNutRecipe = noNuts.some(r => r.name === 'Peanut Butter');
+            assert(
+                !hasNutRecipe,
+                'Allergen Filter: Nut-free',
+                'No peanut butter',
+                hasNutRecipe ? 'Found nut recipe' : 'No nut recipes'
+            );
+
+            // Test dairy filtering
+            const noDairy = findRecipes([], ['dairy']);
+            const hasDairyRecipe = noDairy.some(r => r.name === 'Cheese Pizza');
+            assert(
+                !hasDairyRecipe,
+                'Allergen Filter: Dairy-free',
+                'No cheese pizza',
+                hasDairyRecipe ? 'Found dairy recipe' : 'No dairy recipes'
+            );
+        }
+
+        function testMealPlanFunctions() {
+            // Test default plan creation
+            const plan = getMealPlan('testuser2');
+            const hasSunday = plan.hasOwnProperty('Sunday');
+            const hasBreakfast = plan.Sunday.hasOwnProperty('breakfast');
+            
+            assert(
+                hasSunday && hasBreakfast,
+                'Meal Plan: Default plan structure',
+                'Has Sunday and breakfast',
+                `Sunday: ${hasSunday}, Breakfast: ${hasBreakfast}`
+            );
+
+            // Test plan saving
+            plan.Monday.lunch = { name: 'Test Recipe' };
+            saveMealPlan('testuser2', plan);
+            const retrieved = getMealPlan('testuser2');
+            
+            assert(
+                retrieved.Monday.lunch?.name === 'Test Recipe',
+                'Meal Plan: Save and retrieve',
+                'Test Recipe',
+                retrieved.Monday.lunch?.name || 'null'
+            );
+
+            // Cleanup
+            localStorage.removeItem('mealPlan_testuser2');
+        }
+
+        function testFavoritesFunctions() {
+            const testRecipe = { name: 'Test Fav', ingredients: ['a', 'b'] };
+            
+            // Start with empty favorites
+            saveFavorites('testuser3', []);
+            let favs = getFavorites('testuser3');
+            
+            assert(
+                favs.length === 0,
+                'Favorites: Start empty',
+                '0 favorites',
+                `${favs.length} favorites`
+            );
+
+            // Add a favorite
+            favs.push(testRecipe);
+            saveFavorites('testuser3', favs);
+            favs = getFavorites('testuser3');
+            
+            assert(
+                favs.length === 1 && favs[0].name === 'Test Fav',
+                'Favorites: Add favorite',
+                '1 favorite named Test Fav',
+                `${favs.length} favorite(s)`
+            );
+
+            // Cleanup
+            localStorage.removeItem('favorites_testuser3');
+        }
+
+        function testCommentsFunctions() {
+            const testComment = { user: 'testuser4', text: 'Great recipe!', date: new Date().toISOString() };
+            
+            // Test recipe comments
+            saveRecipeComments('Pancakes', [testComment]);
+            const comments = getRecipeComments('Pancakes');
+            
+            assert(
+                comments.length === 1 && comments[0].text === 'Great recipe!',
+                'Comments: Recipe comments',
+                '1 comment saying Great recipe!',
+                `${comments.length} comment(s)`
+            );
+
+            // Test general comments
+            saveGeneralComments([testComment]);
+            const general = getGeneralComments();
+            
+            assert(
+                general.length === 1 && general[0].text === 'Great recipe!',
+                'Comments: General comments',
+                '1 comment',
+                `${general.length} comment(s)`
+            );
+
+            // Cleanup
+            localStorage.removeItem('comments_Pancakes');
+            localStorage.removeItem('generalComments');
+        }
+
+        function testSavedPlansFunctions() {
+            const testPlan = {
+                Monday: { breakfast: { name: 'Pancakes' }, lunch: null, dinner: null },
+                Tuesday: { breakfast: null, lunch: null, dinner: null }
+            };
+
+            // Test saving named plan
+            saveNamedPlan('testuser5', 'My Week 1', testPlan);
+            const savedPlans = getSavedPlans('testuser5');
+            
+            assert(
+                savedPlans.hasOwnProperty('My Week 1'),
+                'Saved Plans: Save named plan',
+                'Has "My Week 1"',
+                savedPlans.hasOwnProperty('My Week 1') ? 'Found' : 'Not found'
+            );
+
+            // Test loading named plan
+            const loaded = loadNamedPlan('testuser5', 'My Week 1');
+            
+            assert(
+                loaded && loaded.Monday.breakfast.name === 'Pancakes',
+                'Saved Plans: Load named plan',
+                'Pancakes on Monday breakfast',
+                loaded?.Monday?.breakfast?.name || 'null'
+            );
+
+            // Cleanup
+            localStorage.removeItem('savedPlans_testuser5');
+        }
+
+        console.log('Test suite loaded. Click "Run All Tests" to start.');
+    </script>
+</body>
+</html>
