@@ -272,7 +272,70 @@ function getAllIngredients() {
                 }
             }
             
-            ingredients.add(normalized);
+            // Consolidate similar ingredients into common names
+            const consolidationMap = {
+                // Eggs
+                'egg': 'eggs',
+                'egg white': 'eggs',
+                'egg yolk': 'eggs',
+                'beaten egg': 'eggs',
+                
+                // Flour types
+                'plain flour': 'flour',
+                'all-purpose flour': 'flour',
+                'self-raising flour': 'flour',
+                'self-rising flour': 'flour',
+                'wheat flour': 'flour',
+                
+                // Milk types
+                'whole milk': 'milk',
+                'skim milk': 'milk',
+                'skimmed milk': 'milk',
+                '2% milk': 'milk',
+                
+                // Cream types
+                'heavy cream': 'cream',
+                'double cream': 'cream',
+                'single cream': 'cream',
+                'whipping cream': 'cream',
+                
+                // Sugar types
+                'granulated sugar': 'sugar',
+                'caster sugar': 'sugar',
+                'white sugar': 'sugar',
+                'brown sugar': 'sugar',
+                
+                // Butter
+                'salted butter': 'butter',
+                'unsalted butter': 'butter',
+                
+                // Oil
+                'vegetable oil': 'oil',
+                'olive oil': 'olive oil',
+                'canola oil': 'oil',
+                'cooking oil': 'oil',
+                
+                // Salt
+                'sea salt': 'salt',
+                'kosher salt': 'salt',
+                'table salt': 'salt',
+                
+                // Pepper
+                'black pepper': 'pepper',
+                'ground pepper': 'pepper',
+                'white pepper': 'pepper'
+            };
+            
+            // Check if this ingredient should be consolidated
+            let finalIngredient = normalized;
+            for (const [key, value] of Object.entries(consolidationMap)) {
+                if (normalized === key || normalized.includes(key)) {
+                    finalIngredient = value;
+                    break;
+                }
+            }
+            
+            ingredients.add(finalIngredient);
         });
     });
     return Array.from(ingredients).sort();
