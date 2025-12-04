@@ -229,15 +229,16 @@ tabButtons.forEach(button => {
 // -----------------
 // Ingredient Boxes (Filters)
 // -----------------
-function getAllIngredients() {
-    const ingredients = new Set();
+
+function getAllIngredientsByCategory() {
+    const categorized = {};
+
     allRecipes.forEach(recipe => {
         recipe.ingredients.forEach(ingredient => {
             let normalized = ingredient.toLowerCase().trim();
             
-            // Improved pluralization handling
+            // ---------- pluralization handling ----------
             if (normalized.endsWith('s') && normalized.length > 3) {
-                // Keep these words as-is (always plural or proper form)
                 const keepPlural = ['peas', 'beans', 'lentils', 'oats', 'grits', 'olives', 
                                    'strawberries', 'blueberries', 'raspberries', 'cranberries', 
                                    'blackberries', 'cherries', 'pears', 'apples', 'grapes',
@@ -245,88 +246,60 @@ function getAllIngredients() {
                                    'eggs', 'mushrooms', 'noodles', 'chips', 'cookies'];
                 
                 if (!keepPlural.includes(normalized)) {
-                    // Handle -ies ending (berries, cherries) -> remove -ies, add -y
                     if (normalized.endsWith('ies') && normalized.length > 4) {
                         const base = normalized.slice(0, -3);
-                        // Don't singularize if it ends in a vowel before 'ies'
                         if (!'aeiou'.includes(base[base.length - 1])) {
                             normalized = base + 'y';
                         }
-                    }
-                    // Handle -oes ending (tomatoes, potatoes) -> remove -es
-                    else if (normalized.endsWith('oes') && normalized.length > 4) {
+                    } else if (normalized.endsWith('oes') && normalized.length > 4) {
                         normalized = normalized.slice(0, -2);
-                    }
-                    // Handle -shes, -ches ending -> remove -es
-                    else if ((normalized.endsWith('shes') || normalized.endsWith('ches')) && normalized.length > 5) {
+                    } else if ((normalized.endsWith('shes') || normalized.endsWith('ches')) && normalized.length > 5) {
                         normalized = normalized.slice(0, -2);
-                    }
-                    // Handle -sses ending (glasses) -> remove -es
-                    else if (normalized.endsWith('sses') && normalized.length > 5) {
+                    } else if (normalized.endsWith('sses') && normalized.length > 5) {
                         normalized = normalized.slice(0, -2);
-                    }
-                    // Default: just remove the 's'
-                    else if (!normalized.endsWith('ss') && !normalized.endsWith('us')) {
+                    } else if (!normalized.endsWith('ss') && !normalized.endsWith('us')) {
                         normalized = normalized.slice(0, -1);
                     }
                 }
             }
-            
-            // Consolidate similar ingredients into common names
+
+            // ---------- consolidation ----------
             const consolidationMap = {
-                // Eggs
                 'egg': 'eggs',
                 'egg white': 'eggs',
                 'egg yolk': 'eggs',
                 'beaten egg': 'eggs',
-                
-                // Flour types
                 'plain flour': 'flour',
                 'all-purpose flour': 'flour',
                 'self-raising flour': 'flour',
                 'self-rising flour': 'flour',
                 'wheat flour': 'flour',
-                
-                // Milk types
                 'whole milk': 'milk',
                 'skim milk': 'milk',
                 'skimmed milk': 'milk',
                 '2% milk': 'milk',
-                
-                // Cream types
                 'heavy cream': 'cream',
                 'double cream': 'cream',
                 'single cream': 'cream',
                 'whipping cream': 'cream',
-                
-                // Sugar types
                 'granulated sugar': 'sugar',
                 'caster sugar': 'sugar',
                 'white sugar': 'sugar',
                 'brown sugar': 'sugar',
-                
-                // Butter
                 'salted butter': 'butter',
                 'unsalted butter': 'butter',
-                
-                // Oil
                 'vegetable oil': 'oil',
                 'olive oil': 'olive oil',
                 'canola oil': 'oil',
                 'cooking oil': 'oil',
-                
-                // Salt
                 'sea salt': 'salt',
                 'kosher salt': 'salt',
                 'table salt': 'salt',
-                
-                // Pepper
                 'black pepper': 'pepper',
                 'ground pepper': 'pepper',
                 'white pepper': 'pepper'
             };
-            
-            // Check if this ingredient should be consolidated
+
             let finalIngredient = normalized;
             for (const [key, value] of Object.entries(consolidationMap)) {
                 if (normalized === key || normalized.includes(key)) {
@@ -334,11 +307,21 @@ function getAllIngredients() {
                     break;
                 }
             }
-            
-            ingredients.add(finalIngredient);
+
+            // ---------- assign category ----------
+            const category = RemoteRecipes.ingredientCategories[finalIngredient] || 'Other';
+            if (!categorized[category]) categorized[category] = new Set();
+            categorized[category].add(finalIngredient);
         });
     });
-    return Array.from(ingredients).sort();
+
+    // ---------- convert Sets to sorted arrays ----------
+    const result = {};
+    Object.keys(categorized).forEach(cat => {
+        result[cat] = Array.from(categorized[cat]).sort();
+    });
+
+    return result;
 }
 
 function createIngredientBoxes() {
@@ -869,3 +852,4 @@ window.addEventListener('load', async () => {
         showAuth();
     }
 });
+
