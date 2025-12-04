@@ -4,6 +4,51 @@
 const RemoteRecipes = {
   baseUrl: 'https://www.themealdb.com/api/json/v1/1',
   
+  // Ingredient → Category map (you can expand this)
+  ingredientCategories: {
+    chicken: "Protein",
+    beef: "Protein",
+    pork: "Protein",
+    lamb: "Protein",
+    fish: "Protein",
+    salmon: "Protein",
+    shrimp: "Protein",
+    bacon: "Protein",
+    egg: "Protein",
+
+    milk: "Dairy",
+    cheese: "Dairy",
+    butter: "Dairy",
+    cream: "Dairy",
+    yogurt: "Dairy",
+
+    rice: "Grains",
+    pasta: "Grains",
+    bread: "Grains",
+
+    potato: "Vegetables",
+    tomato: "Vegetables",
+    onion: "Vegetables",
+    garlic: "Vegetables",
+    carrot: "Vegetables",
+    broccoli: "Vegetables",
+    spinach: "Vegetables",
+    corn: "Vegetables",
+    pepper: "Vegetables",
+    mushroom: "Vegetables",
+    avocado: "Vegetables",
+
+    apple: "Fruits",
+    strawberry: "Fruits",
+    lemon: "Fruits",
+
+    beans: "Pantry",
+    flour: "Pantry",
+    sugar: "Pantry",
+    salt: "Pantry",
+    peppercorn: "Pantry"
+  },
+
   // Common ingredients to fetch a diverse set of recipes
   commonIngredients: [
     'chicken', 'beef', 'pork', 'fish', 'salmon',
@@ -57,36 +102,39 @@ const RemoteRecipes = {
   normalizeRecipe(meal) {
     const ingredients = [];
     const ingredientsWithMeasures = [];
-    
-    // TheMealDB has ingredients in strIngredient1-20 format
+    const categorizedIngredients = {};
+
     for (let i = 1; i <= 20; i++) {
       const ingredient = meal[`strIngredient${i}`];
       const measure = meal[`strMeasure${i}`];
-      
+
       if (ingredient && ingredient.trim()) {
-        ingredients.push(ingredient.toLowerCase().trim());
-        
-        // Combine measure and ingredient for display
+        const cleanIngredient = ingredient.toLowerCase().trim();
+        ingredients.push(cleanIngredient);
+
         const measureText = measure && measure.trim() ? measure.trim() : '';
-        ingredientsWithMeasures.push(
-          measureText ? `${measureText} ${ingredient.trim()}` : ingredient.trim()
-        );
+        const full = measureText ? `${measureText} ${ingredient.trim()}` : ingredient.trim();
+        ingredientsWithMeasures.push(full);
+
+        // CATEGORY FILTERING
+        const category = this.ingredientCategories[cleanIngredient] || "Other";
+        if (!categorizedIngredients[category]) {
+          categorizedIngredients[category] = [];
+        }
+        categorizedIngredients[category].push(full);
       }
     }
 
     // Format instructions consistently
     let instructions = meal.strInstructions || 'No instructions available.';
     
-    // Remove timing information lines
     instructions = instructions.replace(/(?:^|\n)\s*(?:Prep|Cook|Ready|Total)[:›].+?(?:\n|$)/gi, '\n');
     
-    // Split by common delimiters (newlines, periods followed by capital letters, or numbered steps)
     const steps = instructions
       .split(/\r?\n|(?<=[.!?])\s+(?=[A-Z])|(?:^|\s)(?:\d+\.|\d+\))\s*/)
       .map(step => step.trim())
-      .filter(step => step.length > 10); // Filter out very short fragments
-    
-    // If we got multiple steps, format as numbered list, otherwise keep as paragraph
+      .filter(step => step.length > 10);
+
     if (steps.length > 1) {
       instructions = steps.map((step, i) => `${i + 1}. ${step}`).join('\n\n');
     }
@@ -96,12 +144,16 @@ const RemoteRecipes = {
       name: meal.strMeal,
       ingredients: ingredients,
       ingredientsWithMeasures: ingredientsWithMeasures,
+
+      // NEW RETURNED FIELD:
+      categorizedIngredients: categorizedIngredients,
+
       instructions: instructions,
       source: 'themealdb'
     };
   },
 
-  // Fetch recipes by category (much faster than ingredient search)
+  // Fetch recipes by category
   async fetchByCategory(category) {
     try {
       const response = await fetch(`${this.baseUrl}/filter.php?c=${encodeURIComponent(category)}`);
@@ -114,21 +166,17 @@ const RemoteRecipes = {
     }
   },
 
-  // Load a diverse set of recipes using familiar cuisines (much faster)
+  // Load a diverse set of recipes
   async loadDiverseRecipes() {
     console.log('Fetching recipes from TheMealDB...');
-    const allMeals = new Map(); // Use Map to deduplicate by ID
+    const allMeals = new Map();
     
-    // Expanded list of cuisines for more variety
     const areas = ['American', 'British', 'Italian', 'French', 'Mexican', 'Chinese', 'Indian', 'Japanese', 'Thai', 'Greek'];
     const categories = ['Chicken', 'Beef', 'Pasta', 'Seafood', 'Vegetarian', 'Dessert', 'Pork', 'Lamb', 'Side'];
     
-    // Fetch from multiple cuisines
     for (const area of areas) {
       console.log(`Fetching ${area} recipes...`);
       const meals = await this.fetchByArea(area);
-      
-      // Get details for first 12 recipes from each area (increased from 8)
       const mealsToFetch = meals.slice(0, 12);
       
       for (const meal of mealsToFetch) {
@@ -141,12 +189,9 @@ const RemoteRecipes = {
       }
     }
     
-    // Add recipes from popular categories
     for (const category of categories) {
       console.log(`Fetching ${category} recipes...`);
       const meals = await this.fetchByCategory(category);
-      
-      // Get details for first 8 recipes from each category (increased from 5)
       const mealsToFetch = meals.slice(0, 8);
       
       for (const meal of mealsToFetch) {
